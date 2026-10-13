@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import EmptyNote from "./EmptyNote";
 import TopBar from "./TopBar";
@@ -64,6 +65,9 @@ export default function SettingsBoard() {
                 <p className="muted">
                   {student.year} · {student.major}
                 </p>
+                <Link href="/profile" className="quiet-link">
+                  Open profile
+                </Link>
               </div>
             </div>
             <dl className="profile-grid">
@@ -199,6 +203,9 @@ export default function SettingsBoard() {
               A block would run <strong>{focus}:00</strong>
               {xpOn ? " and keep the XP chips visible." : " with the XP chips hidden."}
             </p>
+            <Link href={`/focus?minutes=${focus}`} className="btn3d btn-primary full">
+              Start a {focus} min block
+            </Link>
           </section>
         )}
 

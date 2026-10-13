@@ -275,7 +275,7 @@ function CourseGrade({
               const pct = item.earned === null ? null : Math.round((item.earned / item.possible) * 100);
               return (
                 <li key={item.id}>
-                  <div className="work-row is-static">
+                  <Link href={`/assignments/${item.upcomingId ?? item.id}`} className="work-row">
                     <span className="work-name">
                       <strong>{item.title}</strong>
                       <span className="muted small">
@@ -293,7 +293,7 @@ function CourseGrade({
                         <small>{item.status === "missing" ? "Missing" : item.status === "late" ? "Late" : letterFor(pct)}</small>
                       </span>
                     )}
-                  </div>
+                  </Link>
                 </li>
               );
             })}

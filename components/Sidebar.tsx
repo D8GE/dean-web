@@ -102,13 +102,13 @@ export default function Sidebar({
             <i />
             <span className="source-label">{source === "live" ? "Live" : "Demo"}</span>
           </p>
-          <div className="streak-mini" title={collapsed ? `${student.streakDays} day streak` : undefined}>
+          <Link href="/profile" className="streak-mini" title={collapsed ? `${student.streakDays} day streak` : undefined}>
             <span className="streak-mini-flame">🔥</span>
             <div className="streak-copy">
               <div className="streak-mini-num">{student.streakDays} days</div>
               <div className="streak-mini-sub">Keep it lit tonight</div>
             </div>
-          </div>
+          </Link>
           <Link
             href="/settings"
             className={`nav-item subtle ${settingsOn ? "is-active" : ""}`}

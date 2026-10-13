@@ -73,20 +73,30 @@ export default function CoursesBoard() {
             <div className="stat-label">credits in progress</div>
           </div>
         </div>
-        <div className="stat tint-mint">
+        <Link href="/grades" className="stat tint-mint">
           <span className="stat-emoji">📈</span>
           <div>
             <div className="stat-num">{average}%</div>
             <div className="stat-label">average across them</div>
           </div>
-        </div>
-        <div className="stat tint-coral">
+        </Link>
+        {next ? (
+        <Link href={`/courses/${next.course.slug}`} className="stat tint-coral">
           <span className="stat-emoji">⏭️</span>
           <div>
             <div className="stat-num">{next ? next.course.code : "—"}</div>
-            <div className="stat-label">{next ? `next · ${formatClock(next.next!.meeting.startMin)}` : "nothing else today"}</div>
+            <div className="stat-label">{`next · ${formatClock(next.next!.meeting.startMin)}`}</div>
+          </div>
+        </Link>
+        ) : (
+        <div className="stat tint-coral">
+          <span className="stat-emoji">⏭️</span>
+          <div>
+            <div className="stat-num">—</div>
+            <div className="stat-label">nothing else today</div>
           </div>
         </div>
+        )}
       </div>
 
       <div className="toolbar-line">
