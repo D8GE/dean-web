@@ -3,12 +3,14 @@
 import Link from "next/link";
 import { useState } from "react";
 import EmptyNote from "./EmptyNote";
+import FootNote from "./FootNote";
 import TopBar from "./TopBar";
-import { courseByCode } from "@/lib/demo-data";
+import { useHub } from "./HubProvider";
 import { modulePage, workById } from "@/lib/hub";
 
 export default function ModuleItemBoard({ slug, itemId }: { slug: string; itemId: string }) {
-  const page = modulePage(slug, itemId);
+  const hub = useHub();
+  const page = modulePage(hub, slug, itemId);
   const [query, setQuery] = useState("");
 
   if (!page) {
@@ -25,8 +27,21 @@ export default function ModuleItemBoard({ slug, itemId }: { slug: string; itemId
     );
   }
 
-  const course = courseByCode[page.courseCode];
-  const work = page.workId ? workById(page.workId) : null;
+  const course = hub.courseByCode[page.courseCode];
+  const work = page.workId ? workById(hub, page.workId) : null;
+  if (!course) {
+    return (
+      <>
+        <TopBar eyebrow="Modules" title="Item not found" query={query} onQuery={setQuery} placeholder="Search modules…" />
+        <section className="card">
+          <EmptyNote emoji="📂" title="That module item isn't on your courses." body="Week 7 and week 8 are the ones loaded in the demo." />
+          <Link href="/courses" className="btn3d btn-primary">
+            Back to courses
+          </Link>
+        </section>
+      </>
+    );
+  }
 
   return (
     <>
@@ -98,7 +113,7 @@ export default function ModuleItemBoard({ slug, itemId }: { slug: string; itemId
         </section>
       </div>
 
-      <footer className="foot muted small">Dean V0 prototype · demo data only</footer>
+      <FootNote />
     </>
   );
 }

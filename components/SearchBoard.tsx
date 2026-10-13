@@ -3,18 +3,68 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import EmptyNote from "./EmptyNote";
+import FootNote from "./FootNote";
 import TopBar from "./TopBar";
-import { courses, student, upcoming } from "@/lib/demo-data";
-import { groupHits, hubKindOrder, searchHub, type HubKind } from "@/lib/hub";
+import { useHub } from "./HubProvider";
+import { groupHits, hubKindOrder, searchHub, type HubKind, type HubSnapshot } from "@/lib/hub";
 
-const starters = [
+const demoStarters = [
   { href: "/assignments/a1", emoji: "📝", title: "Due tonight", detail: "Rhetorical analysis — first draft" },
   { href: "/schedule?event=class-m2", emoji: "📐", title: "Happening now", detail: "MATH 121 · Science Hall 204" },
   { href: "/focus", emoji: "⏱️", title: "3:30 focus block", detail: "Outline the English draft" },
   { href: "/notifications", emoji: "🔔", title: "Notifications", detail: "Calc, the draft, the streak" },
 ];
 
+function startersFor(hub: HubSnapshot) {
+  if (hub.source !== "live") return demoStarters;
+  const due = hub.upcoming.find((item) => item.status !== "submitted") ?? hub.upcoming[0];
+  const session = hub.todaysClasses.find((item) => item.status === "now") ?? hub.todaysClasses.find((item) => item.status === "next");
+  const meeting = session
+    ? hub.meetings.find((item) => {
+        if (item.course !== session.course || item.day !== hub.semester.todayDow) return false;
+        if (session.startMin != null && item.startMin !== session.startMin) return false;
+        return true;
+      })
+    : undefined;
+  const block = hub.deansPlan[0];
+  const cards = [];
+  if (due) {
+    cards.push({
+      href: `/assignments/${due.id}`,
+      emoji: "📝",
+      title: due.urgency === "today" ? "Due today" : "Up next",
+      detail: due.title,
+    });
+  }
+  if (session) {
+    cards.push({
+      href: meeting ? `/schedule?event=class-${meeting.id}` : "/schedule",
+      emoji: "📐",
+      title: session.status === "now" ? "Happening now" : "Up next",
+      detail: `${session.course} · ${session.where}`,
+    });
+  }
+  if (block) {
+    cards.push({
+      href: "/focus?block=0",
+      emoji: "⏱️",
+      title: `${block.time} focus block`,
+      detail: block.label,
+    });
+  }
+  cards.push({
+    href: "/notifications",
+    emoji: "🔔",
+    title: "Notifications",
+    detail: hub.notifications[0]?.title ?? "Inbox",
+  });
+  return cards;
+}
+
 export default function SearchBoard({ initialQuery = "" }: { initialQuery?: string }) {
+  const hub = useHub();
+  const { courses, student, upcoming } = hub;
+  const starters = startersFor(hub);
   const [query, setQuery] = useState(initialQuery);
   const [trackedQuery, setTrackedQuery] = useState(initialQuery);
   if (trackedQuery !== initialQuery) {
@@ -22,7 +72,7 @@ export default function SearchBoard({ initialQuery = "" }: { initialQuery?: stri
     setQuery(initialQuery);
   }
   const [kind, setKind] = useState<HubKind | "all">("all");
-  const hits = useMemo(() => searchHub(query), [query]);
+  const hits = useMemo(() => searchHub(hub, query), [hub, query]);
   const shown = kind === "all" ? hits : hits.filter((hit) => hit.kind === kind);
   const groups = groupHits(shown);
   const trimmed = query.trim();
@@ -142,7 +192,7 @@ export default function SearchBoard({ initialQuery = "" }: { initialQuery?: stri
         </>
       )}
 
-      <footer className="foot muted small">Dean V0 prototype · demo data only</footer>
+      <FootNote />
     </main>
   );
 }

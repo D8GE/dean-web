@@ -3,36 +3,33 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import DeanAvatar from "./DeanAvatar";
+import FootNote from "./FootNote";
 import { PlayIcon } from "./Icons";
 import TopBar from "./TopBar";
-import { courseByCode, deansPlan, focusLengths, semester, upcoming } from "@/lib/demo-data";
+import { useHub } from "./HubProvider";
 
 type Phase = "ready" | "running" | "paused" | "done";
-type Length = (typeof focusLengths)[number];
 
-function parseMinutes(value: string | null): Length {
+function parseMinutes(value: string | null, lengths: readonly number[]) {
   const minutes = Number(value);
-  return (focusLengths as readonly number[]).includes(minutes) ? (minutes as Length) : 50;
+  return lengths.includes(minutes) ? minutes : lengths.includes(50) ? 50 : (lengths[0] ?? 50);
 }
 
-function parseBlock(value: string | null) {
+function parseBlock(value: string | null, count: number) {
   const index = Number(value);
-  if (!Number.isInteger(index) || index < 0 || index >= deansPlan.length) return 0;
+  if (!Number.isInteger(index) || index < 0 || index >= count) return 0;
   return index;
 }
 
 export default function FocusBoard({ minutes, block }: { minutes: string | null; block: string | null }) {
+  const { courseByCode, deansPlan, focusLengths, semester, upcoming } = useHub();
   const [query, setQuery] = useState("");
-  const [length, setLength] = useState<Length>(() => parseMinutes(minutes));
-  const [index, setIndex] = useState(() => parseBlock(block));
+  const [length, setLength] = useState(() => parseMinutes(minutes, focusLengths));
+  const [index, setIndex] = useState(() => parseBlock(block, deansPlan.length));
   const [phase, setPhase] = useState<Phase>("ready");
-  const [remaining, setRemaining] = useState(() => parseMinutes(minutes) * 60);
+  const [remaining, setRemaining] = useState(() => parseMinutes(minutes, focusLengths) * 60);
   const [endAt, setEndAt] = useState<number | null>(null);
   const [early, setEarly] = useState(false);
-
-  const plan = deansPlan[index];
-  const course = plan.course ? courseByCode[plan.course] : null;
-  const assignment = course ? upcoming.find((item) => item.course === course.code) : undefined;
 
   useEffect(() => {
     if (phase !== "running" || endAt === null) return;
@@ -50,7 +47,7 @@ export default function FocusBoard({ minutes, block }: { minutes: string | null;
 
   const locked = phase === "running";
 
-  const chooseLength = (next: Length) => {
+  const chooseLength = (next: number) => {
     if (locked) return;
     setLength(next);
     setRemaining(next * 60);
@@ -67,6 +64,26 @@ export default function FocusBoard({ minutes, block }: { minutes: string | null;
   };
 
   const clock = `${Math.floor(remaining / 60)}:${(remaining % 60).toString().padStart(2, "0")}`;
+  const plan = deansPlan[index] ?? deansPlan[0];
+  if (!plan) {
+    return (
+      <>
+        <TopBar
+          eyebrow={`${semester.today} · a block from tonight's plan`}
+          title="Focus"
+          query={query}
+          onQuery={setQuery}
+          placeholder="Search classes, assignments…"
+        />
+        <section className="card">
+          <p className="prose">Nothing is on tonight&apos;s plan.</p>
+        </section>
+        <FootNote />
+      </>
+    );
+  }
+  const course = plan.course ? courseByCode[plan.course] : null;
+  const assignment = course ? upcoming.find((item) => item.course === course.code) : undefined;
 
   return (
     <>
@@ -205,7 +222,7 @@ export default function FocusBoard({ minutes, block }: { minutes: string | null;
         </section>
       </div>
 
-      <footer className="foot muted small">Dean V0 prototype · demo data only</footer>
+      <FootNote />
     </>
   );
 }

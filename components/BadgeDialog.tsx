@@ -1,10 +1,11 @@
 "use client";
 
 import Overlay from "./Overlay";
-import { badges } from "@/lib/demo-data";
+import { useHub } from "./HubProvider";
 import { badgeCopy } from "@/lib/surface-copy";
 
 export default function BadgeDialog({ active, onClose }: { active: string | null; onClose: () => void }) {
+  const { badges } = useHub();
   return (
     <Overlay title="Badges" kicker="Five on the board. Three are lit." onClose={onClose}>
       <ul className="badge-list">

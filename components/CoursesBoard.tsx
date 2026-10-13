@@ -6,12 +6,16 @@ import EmptyNote from "./EmptyNote";
 import GradeRing from "./GradeRing";
 import TopBar from "./TopBar";
 import { PinIcon } from "./Icons";
-import { announcements, courses, semester, upcoming, type Course } from "@/lib/demo-data";
+import type { Course } from "@/lib/demo-data";
 import { formatClock, nextMeeting, patternLines } from "@/lib/schedule";
+import FootNote from "./FootNote";
+import { useHub } from "./HubProvider";
 
 type SortKey = "next" | "grade" | "name";
 
 export default function CoursesBoard() {
+  const hub = useHub();
+  const { courses, semester, upcoming } = hub;
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortKey>("next");
   const [onlyOpen, setOnlyOpen] = useState(false);
@@ -19,15 +23,15 @@ export default function CoursesBoard() {
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
     const list = courses.filter((course) => {
-      if (onlyOpen && !upcoming.some((item) => item.course === course.code)) return false;
+      if (onlyOpen && !upcoming.some((item) => item.course === course.code && item.status !== "submitted")) return false;
       if (!q) return true;
       return [course.code, course.name, course.professor, course.blurb].join(" ").toLowerCase().includes(q);
     });
     const rank = (course: Course) => {
-      const next = nextMeeting(course.code);
+      const next = nextMeeting(course.code, hub);
       if (!next) return 9_999;
       if (next.live) return next.meeting.startMin;
-      if (next.meeting.day === 0) return 2_000 + next.meeting.startMin;
+      if (next.meeting.day === hub.semester.todayDow) return 2_000 + next.meeting.startMin;
       return 10_000 + next.meeting.day * 1_500 + next.meeting.startMin;
     };
     return [...list].sort((a, b) => {
@@ -35,12 +39,12 @@ export default function CoursesBoard() {
       if (sort === "grade") return b.grade - a.grade || a.code.localeCompare(b.code);
       return rank(a) - rank(b);
     });
-  }, [onlyOpen, query, sort]);
+  }, [courses, hub, onlyOpen, query, sort, upcoming]);
 
-  const average = Math.round(courses.reduce((sum, course) => sum + course.grade, 0) / courses.length);
+  const average = courses.length ? Math.round(courses.reduce((sum, course) => sum + course.grade, 0) / courses.length) : 0;
   const credits = courses.reduce((sum, course) => sum + course.credits, 0);
   const next = courses
-    .map((course) => ({ course, next: nextMeeting(course.code) }))
+    .map((course) => ({ course, next: nextMeeting(course.code, hub) }))
     .filter((row) => row.next && !row.next.live && row.next.when === "Today")
     .sort((a, b) => (a.next!.meeting.startMin - b.next!.meeting.startMin))[0];
 
@@ -127,16 +131,17 @@ export default function CoursesBoard() {
         </div>
       )}
 
-      <footer className="foot muted small">Dean V0 prototype · demo data only</footer>
+      <FootNote />
     </>
   );
 }
 
 function CourseCard({ course }: { course: Course }) {
-  const next = nextMeeting(course.code);
-  const due = upcoming.filter((item) => item.course === course.code);
-  const latest = announcements.find((item) => item.course === course.code);
-  const lines = patternLines(course.code);
+  const hub = useHub();
+  const next = nextMeeting(course.code, hub);
+  const due = hub.upcoming.filter((item) => item.course === course.code && item.status !== "submitted");
+  const latest = hub.announcements.find((item) => item.course === course.code);
+  const lines = patternLines(course.code, hub);
   return (
     <Link href={`/courses/${course.slug}`} className={`course-card tint-${course.color}`}>
       <span className="course-card-bar" />

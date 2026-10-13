@@ -1,16 +1,20 @@
 import type { Metadata } from "next";
 import ModuleItemBoard from "@/components/ModuleItemBoard";
-import { moduleItemParams, modulePage } from "@/lib/hub";
+import { demoSnapshot, moduleItemParams, modulePage } from "@/lib/hub";
+import { loadHub } from "@/lib/load-hub";
 
 type Props = { params: Promise<{ slug: string; itemId: string }> };
 
+export const dynamicParams = true;
+
 export function generateStaticParams() {
-  return moduleItemParams();
+  return moduleItemParams(demoSnapshot("demo"));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug, itemId } = await params;
-  const page = modulePage(slug, itemId);
+  const hub = await loadHub();
+  const page = modulePage(hub, slug, itemId);
   return { title: page ? `${page.itemTitle} · Dean` : "Module · Dean" };
 }
 

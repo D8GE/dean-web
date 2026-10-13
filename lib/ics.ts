@@ -1,4 +1,4 @@
-import { courseByCode } from "./demo-data";
+import type { ScheduleData } from "./schedule";
 import { classEvents, weekByNumber } from "./schedule";
 
 function stamp(iso: string, minutes: number): string {
@@ -12,19 +12,20 @@ function escapeText(value: string): string {
   return value.replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/,/g, "\\,").replace(/;/g, "\\;");
 }
 
-export function buildIcs(week: number): string {
-  const days = weekByNumber(week).days;
+export function buildIcs(week: number, data: ScheduleData): string {
+  const days = weekByNumber(week, data).days;
   const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Dean//School Hub//EN", "CALSCALE:GREGORIAN"];
-  for (const event of classEvents()) {
+  for (const event of classEvents(data, week)) {
     const day = days.find((entry) => entry.dow === event.day);
     if (!day) continue;
-    const course = courseByCode[event.course];
+    const course = data.courseByCode[event.course];
+    const summary = course ? `${event.course} · ${course.name}` : event.label;
     lines.push(
       "BEGIN:VEVENT",
       `UID:${event.id}-w${week}@dean-school-hub`,
       `DTSTART:${stamp(day.iso, event.startMin)}`,
       `DTEND:${stamp(day.iso, event.endMin)}`,
-      `SUMMARY:${escapeText(`${event.course} · ${course?.name ?? event.label}`)}`,
+      `SUMMARY:${escapeText(summary)}`,
       `LOCATION:${escapeText(event.where)}`,
       "END:VEVENT",
     );
@@ -33,8 +34,8 @@ export function buildIcs(week: number): string {
   return lines.join("\r\n");
 }
 
-export function downloadIcs(week: number) {
-  const blob = new Blob([buildIcs(week)], { type: "text/calendar;charset=utf-8" });
+export function downloadIcs(week: number, data: ScheduleData) {
+  const blob = new Blob([buildIcs(week, data)], { type: "text/calendar;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;

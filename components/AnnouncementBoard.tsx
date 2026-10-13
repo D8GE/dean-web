@@ -3,11 +3,14 @@
 import Link from "next/link";
 import { useState } from "react";
 import EmptyNote from "./EmptyNote";
+import FootNote from "./FootNote";
 import TopBar from "./TopBar";
-import { announcements, courseByCode } from "@/lib/demo-data";
-import { announcementAssignment, announcementExtra, workById } from "@/lib/hub";
+import { useHub } from "./HubProvider";
+import { announcementExtra, announcementWorkId, workById } from "@/lib/hub";
 
 export default function AnnouncementBoard({ id }: { id: string }) {
+  const hub = useHub();
+  const { announcements, courseByCode } = hub;
   const post = announcements.find((item) => item.id === id);
   const [query, setQuery] = useState("");
 
@@ -27,7 +30,20 @@ export default function AnnouncementBoard({ id }: { id: string }) {
 
   const course = courseByCode[post.course];
   const more = announcementExtra(post.id);
-  const related = workById(announcementAssignment(post.id) ?? "");
+  const related = workById(hub, announcementWorkId(hub, post.id) ?? "");
+  if (!course) {
+    return (
+      <>
+        <TopBar eyebrow="Announcements" title="Post not found" query={query} onQuery={setQuery} placeholder="Search announcements…" />
+        <section className="card">
+          <EmptyNote emoji="📭" title="That post isn't in the demo." body="Each of the five courses has two announcements this month." />
+          <Link href="/announcements" className="btn3d btn-primary">
+            All announcements
+          </Link>
+        </section>
+      </>
+    );
+  }
   const others = announcements.filter((item) => item.course === post.course && item.id !== post.id);
 
   return (
@@ -102,7 +118,7 @@ export default function AnnouncementBoard({ id }: { id: string }) {
         </section>
       </div>
 
-      <footer className="foot muted small">Dean V0 prototype · demo data only</footer>
+      <FootNote />
     </>
   );
 }

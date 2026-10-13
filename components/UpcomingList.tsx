@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { courseByCode, upcoming } from "@/lib/demo-data";
+import { statusLabel } from "@/lib/demo-data";
 import { CheckIcon } from "./Icons";
+import { useHub } from "./HubProvider";
 
 export default function UpcomingList() {
+  const { courseByCode, upcoming } = useHub();
   const [done, setDone] = useState<Record<string, boolean>>({});
   const [burst, setBurst] = useState<string | null>(null);
 
@@ -21,6 +23,7 @@ export default function UpcomingList() {
   };
 
   const earned = upcoming.filter((a) => done[a.id]).reduce((s, a) => s + a.xp, 0);
+  const available = upcoming.reduce((sum, item) => sum + item.xp, 0);
 
   return (
     <section className="card upcoming">
@@ -30,13 +33,17 @@ export default function UpcomingList() {
           <p className="muted">Check it off, bank the XP.</p>
         </div>
         <span className={`xp-chip ${earned ? "pop" : ""}`} key={earned}>
-          {earned ? `+${earned} XP today` : "⚡ 400 XP up for grabs"}
+          {earned ? `+${earned} XP today` : `⚡ ${available} XP up for grabs`}
         </span>
       </header>
       <ul className="task-list">
         {upcoming.map((a) => {
           const c = courseByCode[a.course];
+          if (!c) return null;
           const isDone = !!done[a.id];
+          const detail = [a.kind, a.points != null && a.points > 0 ? `${a.points} pts` : "", statusLabel(a.status)]
+            .filter(Boolean)
+            .join(" · ");
           return (
             <li key={a.id} className={`task ${isDone ? "is-done" : ""}`}>
               <button
@@ -54,7 +61,7 @@ export default function UpcomingList() {
                 </Link>
                 <div className="task-meta">
                   <span className={`pill tint-${c.color}`}>{a.course}</span>
-                  <span className="muted">{a.kind}</span>
+                  <span className="muted">{detail}</span>
                 </div>
               </div>
               <div className="task-right">

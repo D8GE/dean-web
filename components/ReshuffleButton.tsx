@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useState } from "react";
 import Overlay from "./Overlay";
-import { courseByCode, deansPlan } from "@/lib/demo-data";
+import { useHub } from "./HubProvider";
 
 export default function ReshuffleButton() {
+  const { courseByCode, deansPlan, source } = useHub();
   const [open, setOpen] = useState(false);
 
   return (
@@ -37,7 +38,7 @@ export default function ReshuffleButton() {
           </ul>
           <div className="status-actions">
             <Link href="/focus?block=0" className="btn3d btn-primary" onClick={() => setOpen(false)}>
-              Start the 3:30 block
+              {source === "live" ? `Start the ${deansPlan[0]?.time ?? "next"} block` : "Start the 3:30 block"}
             </Link>
             <Link href="/schedule?event=study-0" className="btn3d btn-ghost" onClick={() => setOpen(false)}>
               Show on the calendar

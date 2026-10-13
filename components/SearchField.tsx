@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { SearchIcon } from "./Icons";
+import { useHub } from "./HubProvider";
 import { searchHub, type HubHit } from "@/lib/hub";
 
 export default function SearchField({
@@ -15,6 +16,7 @@ export default function SearchField({
   onValue?: (value: string) => void;
   placeholder: string;
 }) {
+  const hub = useHub();
   const router = useRouter();
   const [inner, setInner] = useState("");
   const query = value ?? inner;
@@ -22,7 +24,7 @@ export default function SearchField({
   const [active, setActive] = useState<number | null>(null);
   const anchor = useRef<HTMLDivElement>(null);
   const listId = useId();
-  const hits = searchHub(query).slice(0, 6);
+  const hits = searchHub(hub, query).slice(0, 6);
 
   const setQuery = (next: string) => {
     onValue?.(next);

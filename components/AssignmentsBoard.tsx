@@ -3,19 +3,22 @@
 import Link from "next/link";
 import { useState } from "react";
 import EmptyNote from "./EmptyNote";
+import FootNote from "./FootNote";
 import TopBar from "./TopBar";
-import { courseByCode, courses, semester } from "@/lib/demo-data";
+import { useHub } from "./HubProvider";
 import { letterFor } from "@/lib/grades";
 import { openWork, postedWork, type WorkRecord } from "@/lib/hub";
 
 type Filter = "all" | "open" | "graded";
 
 export default function AssignmentsBoard() {
+  const hub = useHub();
+  const { courses, semester } = hub;
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
   const [course, setCourse] = useState("all");
-  const open = openWork();
-  const posted = postedWork();
+  const open = openWork(hub);
+  const posted = postedWork(hub);
 
   const match = (work: WorkRecord) => {
     if (course !== "all" && work.courseCode !== course) return false;
@@ -119,17 +122,18 @@ export default function AssignmentsBoard() {
         </div>
       )}
 
-      <footer className="foot muted small">Dean V0 prototype · demo data only</footer>
+      <FootNote />
     </>
   );
 }
 
 function WorkLink({ work }: { work: WorkRecord }) {
+  const { courseByCode } = useHub();
   const course = courseByCode[work.courseCode];
   const pct = work.earned === null ? null : Math.round((work.earned / work.possible) * 100);
   return (
     <li>
-      <Link href={`/assignments/${work.id}`} className={`work-row tint-${course.color}`}>
+      <Link href={`/assignments/${work.id}`} className={`work-row tint-${course?.color ?? "neutral"}`}>
         <span className="work-name">
           <strong>{work.title}</strong>
           <span className="muted small">
@@ -141,7 +145,7 @@ function WorkLink({ work }: { work: WorkRecord }) {
             {work.xp ? `${work.xp} XP` : "Open"}
           </span>
         ) : (
-          <span className={`score tint-${course.color}`}>
+          <span className={`score tint-${course?.color ?? "neutral"}`}>
             {work.earned}/{work.possible}
             <small>{letterFor(pct)}</small>
           </span>

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import FootNote from "./FootNote";
 
 export default function StatusCard({
   emoji,
@@ -23,7 +24,7 @@ export default function StatusCard({
             </div>
           </div>
           {children && <div className="status-actions">{children}</div>}
-          <footer className="foot muted small">Dean V0 prototype · demo data only</footer>
+          <FootNote />
         </section>
       </div>
     </main>

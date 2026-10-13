@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import Overlay from "./Overlay";
-import { student } from "@/lib/demo-data";
+import { useHub } from "./HubProvider";
 
 const links = [
   { href: "/profile", label: "Profile", detail: "Major, streak, badges" },
@@ -14,6 +14,7 @@ const links = [
 ];
 
 export default function AvatarMenu() {
+  const { source, student } = useHub();
   const [open, setOpen] = useState(false);
   const [signOut, setSignOut] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
@@ -72,14 +73,20 @@ export default function AvatarMenu() {
             }}
           >
             <span>Sign out</span>
-            <span className="muted small">Demo account</span>
+            <span className="muted small">{source === "live" ? "Canvas account" : "Demo account"}</span>
           </button>
         </div>
       )}
       {signOut && (
-        <Overlay title="Still signed in" kicker="This demo doesn't have accounts to leave." onClose={() => setSignOut(false)}>
+        <Overlay
+          title="Still signed in"
+          kicker={source === "live" ? "This page doesn't sign you out of Canvas." : "This demo doesn't have accounts to leave."}
+          onClose={() => setSignOut(false)}
+        >
           <p className="dialog-copy">
-            Jacob stays on this browser. Canvas isn&apos;t connected, and there&apos;s no second student to switch to.
+            {source === "live"
+              ? `${student.firstName} stays on this browser. Signing out of Canvas happens in Canvas, and there's no second student to switch to here.`
+              : "Jacob stays on this browser. Canvas isn't connected, and there's no second student to switch to."}
           </p>
           <div className="status-actions">
             <Link href="/profile" className="btn3d btn-primary" onClick={() => setSignOut(false)}>

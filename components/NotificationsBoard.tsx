@@ -3,14 +3,17 @@
 import Link from "next/link";
 import { useState } from "react";
 import EmptyNote from "./EmptyNote";
+import FootNote from "./FootNote";
 import TopBar from "./TopBar";
-import { semester } from "@/lib/demo-data";
-import { inbox } from "@/lib/hub";
+import { useHub } from "./HubProvider";
+import { inboxFor } from "@/lib/hub";
 import { useInbox } from "./useInbox";
 
 export default function NotificationsBoard() {
   const [query, setQuery] = useState("");
   const [refreshing, setRefreshing] = useState(false);
+  const hub = useHub();
+  const inbox = inboxFor(hub);
   const { notes, hiddenCount, hide, hideAll, restore } = useInbox();
   const q = query.trim().toLowerCase();
   const shown = notes.filter((note) => !q || [note.title, note.detail, note.when].join(" ").toLowerCase().includes(q));
@@ -23,7 +26,7 @@ export default function NotificationsBoard() {
   return (
     <>
       <TopBar
-        eyebrow={`${semester.today} · ${inbox.length} in the demo inbox`}
+        eyebrow={`${hub.semester.today} · ${inbox.length} ${hub.source === "live" ? "in the inbox" : "in the demo inbox"}`}
         title="Notifications"
         query={query}
         onQuery={setQuery}
@@ -88,7 +91,7 @@ export default function NotificationsBoard() {
         </ul>
       )}
 
-      <footer className="foot muted small">Dean V0 prototype · demo data only</footer>
+      <FootNote />
     </>
   );
 }

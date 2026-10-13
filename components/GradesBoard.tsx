@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import EmptyNote from "./EmptyNote";
 import GradeRing from "./GradeRing";
 import TopBar from "./TopBar";
-import { courses, gradeItems, semester, student, type Course } from "@/lib/demo-data";
+import { statusLabel, type Course } from "@/lib/demo-data";
 import {
   categoriesFor,
   categoryAverage,
@@ -16,6 +16,8 @@ import {
   runningPercent,
   upcomingGradeItem,
 } from "@/lib/grades";
+import FootNote from "./FootNote";
+import { useHub } from "./HubProvider";
 
 const SCALE = [
   ["A", "93"],
@@ -28,11 +30,13 @@ const SCALE = [
 ];
 
 export default function GradesBoard({ initialSlug = null }: { initialSlug?: string | null }) {
+  const hub = useHub();
+  const { courses, semester, student } = hub;
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<string>(() => courses.find((course) => course.slug === initialSlug)?.code ?? "all");
   const [status, setStatus] = useState<"all" | "graded" | "open">("all");
 
-  const average = Math.round(courses.reduce((sum, course) => sum + course.grade, 0) / courses.length);
+  const average = courses.length ? Math.round(courses.reduce((sum, course) => sum + course.grade, 0) / courses.length) : 0;
   const credits = courses.reduce((sum, course) => sum + course.credits, 0);
   const soft = [...courses].sort((a, b) => a.grade - b.grade)[0];
   const course = courses.find((item) => item.code === selected) ?? null;
@@ -40,7 +44,7 @@ export default function GradesBoard({ initialSlug = null }: { initialSlug?: stri
   return (
     <>
       <TopBar
-        eyebrow={`${semester.season} · Week ${semester.week} · demo gradebook`}
+        eyebrow={`${semester.season} · Week ${semester.week} · ${hub.source === "live" ? "Canvas gradebook" : "demo gradebook"}`}
         title="Grades"
         query={query}
         onQuery={setQuery}
@@ -59,7 +63,7 @@ export default function GradesBoard({ initialSlug = null }: { initialSlug?: stri
           <span className="stat-emoji">📈</span>
           <div>
             <div className="stat-num">{average}%</div>
-            <div className="stat-label">average of these five</div>
+            <div className="stat-label">{hub.source === "demo" && courses.length === 5 ? "average of these five" : "average across them"}</div>
           </div>
         </div>
         <div className="stat tint-sky">
@@ -72,8 +76,8 @@ export default function GradesBoard({ initialSlug = null }: { initialSlug?: stri
         <div className="stat tint-sun">
           <span className="stat-emoji">🎯</span>
           <div>
-            <div className="stat-num">{soft.letter}</div>
-            <div className="stat-label">soft spot · {soft.code}</div>
+            <div className="stat-num">{soft?.letter ?? "—"}</div>
+            <div className="stat-label">{soft ? `soft spot · ${soft.code}` : "no courses yet"}</div>
           </div>
         </div>
       </div>
@@ -111,12 +115,14 @@ export default function GradesBoard({ initialSlug = null }: { initialSlug?: stri
         <AllCourses query={query} onOpen={setSelected} />
       )}
 
-      <footer className="foot muted small">Dean V0 prototype · demo data only</footer>
+      <FootNote />
     </>
   );
 }
 
 function AllCourses({ query, onOpen }: { query: string; onOpen: (code: string) => void }) {
+  const hub = useHub();
+  const { courses, gradeItems } = hub;
   const q = query.trim().toLowerCase();
   const list = courses.filter((course) => {
     if (!q) return true;
@@ -135,7 +141,7 @@ function AllCourses({ query, onOpen }: { query: string; onOpen: (code: string) =
   return (
     <div className="grade-stack">
       {list.map((course) => {
-        const open = upcomingGradeItem(course.code);
+        const open = upcomingGradeItem(course.code, hub);
         return (
           <button key={course.code} type="button" className={`grade-card tint-${course.color}`} onClick={() => onOpen(course.code)}>
             <GradeRing value={course.grade} color={course.color} label={course.letter} />
@@ -148,8 +154,8 @@ function AllCourses({ query, onOpen }: { query: string; onOpen: (code: string) =
                 <div className="grade-pct">{course.grade}%</div>
               </div>
               <ul className="cat-list">
-                {categoriesFor(course.code).map((category) => {
-                  const avg = categoryAverage(course.code, category.name);
+                {categoriesFor(course.code, hub).map((category) => {
+                  const avg = categoryAverage(course.code, category.name, hub);
                   return (
                     <li key={category.name}>
                       <div className="cat-top">
@@ -186,23 +192,24 @@ function CourseGrade({
   onStatus: (value: "all" | "graded" | "open") => void;
   onBack: () => void;
 }) {
-  const openItem = upcomingGradeItem(course.code);
-  const baseline = openItem ? Math.round(categoryAverage(course.code, openItem.category) ?? course.grade) : 80;
+  const hub = useHub();
+  const openItem = upcomingGradeItem(course.code, hub);
+  const baseline = openItem ? Math.round(categoryAverage(course.code, openItem.category, hub) ?? course.grade) : 80;
   const [score, setScore] = useState(baseline);
   const hypoItem = openItem;
-  const projected = hypoItem ? runningPercent(course.code, { id: hypoItem.id, earned: score }) : officialGrade(course.code);
+  const projected = hypoItem ? runningPercent(course.code, hub, { id: hypoItem.id, earned: score }) : officialGrade(course.code, hub);
   const currentLetter = course.letter;
   const nextLetter = letterFor(projected);
   const q = query.trim().toLowerCase();
   const rows = useMemo(
     () =>
-      itemsFor(course.code).filter((item) => {
+      itemsFor(course.code, hub).filter((item) => {
         if (status === "graded" && item.earned === null) return false;
         if (status === "open" && item.earned !== null) return false;
         if (!q) return true;
         return [item.title, item.category, item.feedback ?? ""].join(" ").toLowerCase().includes(q);
       }),
-    [course.code, q, status],
+    [course.code, hub, q, status],
   );
 
   return (
@@ -229,8 +236,8 @@ function CourseGrade({
         </header>
 
         <ul className="cat-list">
-          {categoriesFor(course.code).map((category) => {
-            const avg = categoryAverage(course.code, category.name);
+          {categoriesFor(course.code, hub).map((category) => {
+            const avg = categoryAverage(course.code, category.name, hub);
             return (
               <li key={category.name}>
                 <div className="cat-top">
@@ -277,11 +284,13 @@ function CourseGrade({
                       </span>
                     </span>
                     {pct === null ? (
-                      <span className="due due-later">Upcoming</span>
+                      <span className={`due ${item.status === "missing" || item.status === "late" ? "due-today" : "due-later"}`}>
+                        {statusLabel(item.status) ?? "Upcoming"}
+                      </span>
                     ) : (
                       <span className={`score tint-${course.color}`}>
                         {item.earned}/{item.possible}
-                        <small>{letterFor(pct)}</small>
+                        <small>{item.status === "missing" ? "Missing" : item.status === "late" ? "Late" : letterFor(pct)}</small>
                       </span>
                     )}
                   </Link>

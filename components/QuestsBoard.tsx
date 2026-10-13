@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import FootNote from "./FootNote";
 import TopBar from "./TopBar";
-import { quests, semester, student } from "@/lib/demo-data";
+import { useHub } from "./HubProvider";
 import { questAnchor, questDetail } from "@/lib/hub";
 
 export default function QuestsBoard() {
+  const { quests, semester, student } = useHub();
   const [query, setQuery] = useState("");
   const q = query.trim().toLowerCase();
   const rows = quests.filter((quest) => {
@@ -87,7 +89,7 @@ export default function QuestsBoard() {
           </section>
         </div>
 
-      <footer className="foot muted small">Dean V0 prototype · demo data only</footer>
+      <FootNote />
     </>
   );
 }

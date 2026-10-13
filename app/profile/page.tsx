@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import ProfileBoard from "@/components/ProfileBoard";
-import { student } from "@/lib/demo-data";
+import { loadHub } from "@/lib/load-hub";
 
-export const metadata: Metadata = { title: `${student.firstName} ${student.lastName} · Dean` };
+export async function generateMetadata(): Promise<Metadata> {
+  const hub = await loadHub();
+  return { title: `${hub.student.firstName} ${hub.student.lastName} · Dean` };
+}
 
 export default function ProfilePage() {
   return (

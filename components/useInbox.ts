@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { inbox, type InboxNote } from "@/lib/hub";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useHub } from "./HubProvider";
+import { inboxFor, type InboxNote } from "@/lib/hub";
 
 const KEY = "dean-inbox-hidden";
 const EVENT = "dean-inbox";
@@ -21,6 +22,8 @@ function writeHidden(ids: string[]) {
 }
 
 export function useInbox() {
+  const hub = useHub();
+  const inbox = useMemo(() => inboxFor(hub), [hub]);
   const [hidden, setHidden] = useState<string[]>([]);
 
   useEffect(() => {
@@ -42,7 +45,7 @@ export function useInbox() {
 
   const hideAll = useCallback(() => {
     writeHidden(inbox.map((note) => note.id));
-  }, []);
+  }, [inbox]);
 
   const restore = useCallback(() => {
     writeHidden([]);

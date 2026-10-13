@@ -2,12 +2,15 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import FootNote from "./FootNote";
 import TopBar from "./TopBar";
-import { badges, courses, semester, student } from "@/lib/demo-data";
+import { useHub } from "./HubProvider";
 import { badgeCopy } from "@/lib/surface-copy";
 import { openWork } from "@/lib/hub";
 
 export default function ProfileBoard() {
+  const hub = useHub();
+  const { badges, courses, semester, student } = hub;
   const [query, setQuery] = useState("");
   const q = query.trim().toLowerCase();
   const show = (...parts: string[]) => !q || parts.join(" ").toLowerCase().includes(q);
@@ -16,7 +19,7 @@ export default function ProfileBoard() {
   const showCourses = show("course", "grade", "gpa", ...courses.flatMap((course) => [course.code, course.name]));
   const showDue = show("due", "work", "assignment", "draft");
   const any = showId || showBadges || showCourses || showDue;
-  const due = openWork();
+  const due = openWork(hub);
 
   return (
     <>
@@ -169,7 +172,7 @@ export default function ProfileBoard() {
             <ul className="snap-list">
               {due.map((work) => (
                 <li key={work.id}>
-                  <Link href={`/assignments/${work.id}`} className={`snap-row tint-${courseBy(work.courseCode)}`}>
+                  <Link href={`/assignments/${work.id}`} className={`snap-row tint-${courses.find((course) => course.code === work.courseCode)?.color ?? "neutral"}`}>
                     <span>
                       <strong>{work.title}</strong>
                       <span className="muted small">
@@ -184,11 +187,7 @@ export default function ProfileBoard() {
         )}
       </div>
 
-      <footer className="foot muted small">Dean V0 prototype · demo data only</footer>
+      <FootNote />
     </>
   );
-}
-
-function courseBy(code: string) {
-  return courses.find((course) => course.code === code)?.color ?? "neutral";
 }

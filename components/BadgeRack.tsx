@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import BadgeDialog from "./BadgeDialog";
-import { badges } from "@/lib/demo-data";
+import { useHub } from "./HubProvider";
 
 export default function BadgeRack() {
+  const { badges } = useHub();
   const [active, setActive] = useState<string | null>(null);
 
   return (

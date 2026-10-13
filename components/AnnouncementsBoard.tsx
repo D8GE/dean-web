@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { useState } from "react";
 import EmptyNote from "./EmptyNote";
+import FootNote from "./FootNote";
 import TopBar from "./TopBar";
-import { announcements, courseByCode, courses, semester } from "@/lib/demo-data";
+import { useHub } from "./HubProvider";
 
 export default function AnnouncementsBoard() {
+  const { announcements, courseByCode, courses, semester } = useHub();
   const [query, setQuery] = useState("");
   const [course, setCourse] = useState("all");
   const q = query.trim().toLowerCase();
@@ -51,6 +53,7 @@ export default function AnnouncementsBoard() {
         <ul className="announce-list surface-gap">
           {rows.map((post) => {
             const tint = courseByCode[post.course];
+            if (!tint) return null;
             return (
               <li key={post.id}>
                 <Link href={`/announcements/${post.id}`} className={`announce announce-link tint-${tint.color}`}>
@@ -69,7 +72,7 @@ export default function AnnouncementsBoard() {
         </ul>
       )}
 
-      <footer className="foot muted small">Dean V0 prototype · demo data only</footer>
+      <FootNote />
     </>
   );
 }

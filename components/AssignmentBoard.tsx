@@ -3,14 +3,17 @@
 import Link from "next/link";
 import { useState } from "react";
 import EmptyNote from "./EmptyNote";
+import FootNote from "./FootNote";
 import Overlay from "./Overlay";
 import TopBar from "./TopBar";
-import { announcements, courseByCode, semester } from "@/lib/demo-data";
+import { useHub } from "./HubProvider";
 import { letterFor } from "@/lib/grades";
-import { announcementExtra, workById } from "@/lib/hub";
+import { announcementExtra, announcementForWork, moduleLinkForWork, workById } from "@/lib/hub";
 
 export default function AssignmentBoard({ id }: { id: string }) {
-  const work = workById(id);
+  const hub = useHub();
+  const { semester } = hub;
+  const work = workById(hub, id);
   const [query, setQuery] = useState("");
   const [ask, setAsk] = useState(false);
   const [turnedIn, setTurnedIn] = useState(false);
@@ -29,8 +32,22 @@ export default function AssignmentBoard({ id }: { id: string }) {
     );
   }
 
-  const course = courseByCode[work.courseCode];
-  const post = work.announcementId ? announcements.find((item) => item.id === work.announcementId) : undefined;
+  const course = hub.courseByCode[work.courseCode];
+  const post = announcementForWork(hub, work);
+  const moduleLink = moduleLinkForWork(hub, work);
+  if (!course) {
+    return (
+      <>
+        <TopBar eyebrow="Work" title="Assignment not found" query={query} onQuery={setQuery} placeholder="Search assignments…" />
+        <section className="card">
+          <EmptyNote emoji="🗂️" title="That assignment isn't in the gradebook." body="The open ones are this week's five. Everything scored is on the work list too." />
+          <Link href="/assignments" className="btn3d btn-primary">
+            All work
+          </Link>
+        </section>
+      </>
+    );
+  }
   const pct = work.earned === null ? null : Math.round((work.earned / work.possible) * 100);
   const open = work.earned === null;
 
@@ -109,10 +126,10 @@ export default function AssignmentBoard({ id }: { id: string }) {
               </ul>
             </>
           )}
-          {work.moduleItemId && (
+          {moduleLink && (
             <p className="preview-line">
               Module page:{" "}
-              <Link href={`/courses/${course.slug}/items/${work.moduleItemId}`} className="quiet-link">
+              <Link href={`/courses/${moduleLink.slug}/items/${moduleLink.itemId}`} className="quiet-link">
                 Open the week item
               </Link>
             </p>
@@ -132,7 +149,9 @@ export default function AssignmentBoard({ id }: { id: string }) {
                 <div className="ready-banner">
                   <strong>Marked ready on this page.</strong>
                   <p>
-                    Canvas isn&apos;t connected, so the gradebook didn&apos;t move. Check it off under Upcoming work
+                    {hub.source === "live"
+                      ? "This didn't submit to Canvas, so the gradebook didn't move. Check it off under Upcoming work"
+                      : "Canvas isn't connected, so the gradebook didn't move. Check it off under Upcoming work"}
                     {work.xp ? ` if you want the ${work.xp} XP` : ""}.
                   </p>
                 </div>
@@ -195,7 +214,9 @@ export default function AssignmentBoard({ id }: { id: string }) {
       {ask && (
         <Overlay title="Turn this in?" kicker={work.title} onClose={() => setAsk(false)}>
           <p className="dialog-copy">
-            Canvas isn&apos;t hooked up, so this stays inside the demo. The score won&apos;t change. You can still check it off on Home to bank
+            {hub.source === "live"
+              ? "This stays on this page. Canvas doesn't get a submission, and the score won't change. You can still check it off on Home to bank"
+              : "Canvas isn't hooked up, so this stays inside the demo. The score won't change. You can still check it off on Home to bank"}
             {work.xp ? ` the ${work.xp} XP` : " the XP"}.
           </p>
           <div className="status-actions">
@@ -216,7 +237,7 @@ export default function AssignmentBoard({ id }: { id: string }) {
         </Overlay>
       )}
 
-      <footer className="foot muted small">Dean V0 prototype · demo data only</footer>
+      <FootNote />
     </>
   );
 }
