@@ -1,5 +1,4 @@
 import DeanAvatar from "@/components/DeanAvatar";
-import AppShell from "@/components/AppShell";
 import UpcomingList from "@/components/UpcomingList";
 import { BellIcon, PinIcon, PlayIcon, SearchIcon } from "@/components/Icons";
 import {
@@ -37,8 +36,7 @@ export default function Home() {
   const totalFocus = weekActivity.reduce((s, d) => s + d.minutes, 0);
 
   return (
-    <AppShell>
-      <main className="main">
+    <main className="main">
         {/* Top bar */}
         <header className="topbar">
           <div>
@@ -286,7 +284,6 @@ export default function Home() {
         </div>
 
         <footer className="foot muted small">Dean V0 prototype · demo data only</footer>
-      </main>
-    </AppShell>
+    </main>
   );
 }

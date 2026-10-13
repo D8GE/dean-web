@@ -1,15 +1,12 @@
 import type { Metadata } from "next";
-import AppShell from "@/components/AppShell";
 import SettingsBoard from "@/components/SettingsBoard";
 
 export const metadata: Metadata = { title: "Settings · Dean" };
 
 export default function SettingsPage() {
   return (
-    <AppShell>
-      <main className="main">
-        <SettingsBoard />
-      </main>
-    </AppShell>
+    <main className="main">
+      <SettingsBoard />
+    </main>
   );
 }

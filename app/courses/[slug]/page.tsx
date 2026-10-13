@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import AppShell from "@/components/AppShell";
 import CourseHome from "@/components/CourseHome";
 import { courseBySlug, courses } from "@/lib/demo-data";
 
@@ -18,10 +17,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function CoursePage({ params }: Props) {
   const { slug } = await params;
   return (
-    <AppShell>
-      <main className="main">
-        <CourseHome slug={slug} />
-      </main>
-    </AppShell>
+    <main className="main">
+      <CourseHome slug={slug} />
+    </main>
   );
 }
