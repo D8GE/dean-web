@@ -675,8 +675,7 @@ ul, ol { list-style: none; margin: 0; padding: 0; }
   box-shadow: none;
 }
 .cal-event.is-short .cal-event-title {
-  font-size: 11px; line-height: 13px; white-space: nowrap;
-  overflow: hidden; text-overflow: ellipsis;
+  font-size: 11px; line-height: 14px; white-space: nowrap;
 }
 .cal-event.is-short.is-selected { box-shadow: 0 3px 0 var(--c-d); z-index: 3; }
 .cal-now {
@@ -914,4 +913,5 @@ button.work-row:hover { background: #fbfaff; }
   .course-grid, .connect-grid { grid-template-columns: 1fr; }
   .note-pop { width: min(320px, 78vw); }
   .course-hero { flex-direction: column; align-items: flex-start; }
+  .seg-page { display: flex; flex-wrap: wrap; max-width: 100%; }
 }
