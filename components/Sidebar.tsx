@@ -1,17 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import DeanAvatar from "./DeanAvatar";
 import { BookIcon, CalendarIcon, ChartIcon, ChevronLeftIcon, GearIcon, HomeIcon, SparkIcon } from "./Icons";
 import { student } from "@/lib/demo-data";
 
 const nav = [
-  { label: "Home", icon: HomeIcon, color: "violet" },
-  { label: "Schedule", icon: CalendarIcon, color: "sky" },
-  { label: "Courses", icon: BookIcon, color: "mint" },
-  { label: "Grades", icon: ChartIcon, color: "sun" },
-  { label: "Dean", icon: SparkIcon, color: "coral" },
+  { label: "Home", href: "/", icon: HomeIcon, color: "violet" },
+  { label: "Schedule", href: "/schedule", icon: CalendarIcon, color: "sky" },
+  { label: "Courses", href: "/courses", icon: BookIcon, color: "mint" },
+  { label: "Grades", href: "/grades", icon: ChartIcon, color: "sun" },
+  // Dean stays a visual tab. No page — the auto-scheduler isn't built yet.
+  { label: "Dean", href: "", icon: SparkIcon, color: "coral" },
 ] as const;
+
+function isCurrent(pathname: string, href: string) {
+  if (!href) return false;
+  if (href === "/") return pathname === "/";
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
 export default function Sidebar({
   collapsed,
@@ -20,8 +28,8 @@ export default function Sidebar({
   collapsed: boolean;
   onToggle: () => void;
 }) {
-  // Visual-only for V0: highlights the clicked item, no real routing yet.
-  const [active, setActive] = useState("Home");
+  const pathname = usePathname();
+  const settingsOn = isCurrent(pathname, "/settings");
 
   return (
     <aside className="sidebar">
@@ -36,34 +44,52 @@ export default function Sidebar({
       </button>
 
       <div className="sidebar-inner">
-        <div className="brand">
+        <Link href="/" className="brand">
           <DeanAvatar size={44} />
           <div className="brand-copy">
             <div className="brand-name">Dean</div>
             <div className="brand-sub">your school hub</div>
           </div>
-        </div>
+        </Link>
 
         <nav className="nav" aria-label="Main">
-          {nav.map(({ label, icon: Icon, color }) => (
-            <a
-              key={label}
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                setActive(label);
-              }}
-              className={`nav-item tint-${color} ${active === label ? "is-active" : ""} ${label === "Dean" ? "has-badge" : ""}`}
-              aria-current={active === label ? "page" : undefined}
-              title={collapsed ? label : undefined}
-            >
-              <span className="nav-icon">
-                <Icon />
-              </span>
-              <span className="nav-label">{label}</span>
-              {label === "Dean" && <span className="nav-badge">2</span>}
-            </a>
-          ))}
+          {nav.map(({ label, href, icon: Icon, color }) => {
+            const active = isCurrent(pathname, href);
+            const className = `nav-item tint-${color} ${active ? "is-active" : ""} ${label === "Dean" ? "has-badge" : ""}`;
+            const inner = (
+              <>
+                <span className="nav-icon">
+                  <Icon />
+                </span>
+                <span className="nav-label">{label}</span>
+                {label === "Dean" && <span className="nav-badge">2</span>}
+              </>
+            );
+            if (!href) {
+              return (
+                <a
+                  key={label}
+                  href="#dean"
+                  onClick={(event) => event.preventDefault()}
+                  className={className}
+                  title={collapsed ? label : undefined}
+                >
+                  {inner}
+                </a>
+              );
+            }
+            return (
+              <Link
+                key={label}
+                href={href}
+                className={className}
+                aria-current={active ? "page" : undefined}
+                title={collapsed ? label : undefined}
+              >
+                {inner}
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="sidebar-foot">
@@ -74,12 +100,17 @@ export default function Sidebar({
               <div className="streak-mini-sub">Keep it lit tonight</div>
             </div>
           </div>
-          <a href="#" className="nav-item subtle" title={collapsed ? "Settings" : undefined} onClick={(e) => e.preventDefault()}>
+          <Link
+            href="/settings"
+            className={`nav-item subtle ${settingsOn ? "is-active" : ""}`}
+            aria-current={settingsOn ? "page" : undefined}
+            title={collapsed ? "Settings" : undefined}
+          >
             <span className="nav-icon">
               <GearIcon />
             </span>
             <span className="nav-label">Settings</span>
-          </a>
+          </Link>
         </div>
       </div>
     </aside>

@@ -10,6 +10,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const hydrated = useRef(false);
 
   useEffect(() => {
+    // Read after mount so the server render stays expanded and doesn't mismatch.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage is only available on the client
     setCollapsed(localStorage.getItem(STORAGE_KEY) === "1");
   }, []);
 
