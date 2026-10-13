@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import EmptyNote from "./EmptyNote";
+import ExternalLink from "./ExternalLink";
 import GradeRing from "./GradeRing";
 import { CheckIcon, PinIcon } from "./Icons";
 import TopBar from "./TopBar";
 import { statusLabel, type CourseModule, type ModuleItem } from "@/lib/demo-data";
-import { categoryAverage, categoriesFor, itemsFor, letterFor } from "@/lib/grades";
+import { categoryAverage, categoriesFor, itemsFor, letterFor, scorePercent } from "@/lib/grades";
 import { formatRange, nextMeeting, patternLines } from "@/lib/schedule";
 import FootNote from "./FootNote";
 import { useHub } from "./HubProvider";
@@ -124,6 +125,13 @@ export default function CourseHome({ slug, initialTab = null }: { slug: string; 
             <Link href={`/schedule?event=class-${next.meeting.id}`} className="hero-next">
               {next.live ? "Happening now" : `Next · ${next.when}`} · {formatRange(next.meeting.startMin, next.meeting.endMin)} · {next.meeting.where}
             </Link>
+          )}
+          {course.htmlUrl && (
+            <p className="preview-line">
+              <ExternalLink href={course.htmlUrl} className="quiet-link">
+                Open in Canvas
+              </ExternalLink>
+            </p>
           )}
         </div>
         <div className="course-hero-grade">
@@ -270,7 +278,7 @@ export default function CourseHome({ slug, initialTab = null }: { slug: string; 
             <ul className="work-list">
               {work.map((item) => {
                 const open = expanded === item.id;
-                const pct = item.earned === null ? null : Math.round((item.earned / item.possible) * 100);
+                const pct = scorePercent(item.earned, item.possible);
                 return (
                   <li key={item.id} className={open ? "is-open" : ""}>
                     <div className="work-row">
@@ -287,14 +295,14 @@ export default function CourseHome({ slug, initialTab = null }: { slug: string; 
                         aria-label={`${open ? "Hide" : "Show"} notes for ${item.title}`}
                         onClick={() => setExpanded(open ? null : item.id)}
                       >
-                        {pct === null ? (
+                        {item.earned === null ? (
                           <span className={`due ${item.status === "missing" || item.status === "late" ? "due-today" : "due-soon"}`}>
                             {statusLabel(item.status) ?? "Not graded"}
                           </span>
                         ) : (
                           <span className={`score tint-${course.color}`}>
                             {item.earned}/{item.possible}
-                            <small>{item.status === "missing" ? "Missing" : item.status === "late" ? "Late" : letterFor(pct)}</small>
+                            <small>{pct === null ? "—" : item.status === "missing" ? "Missing" : item.status === "late" ? "Late" : letterFor(pct)}</small>
                           </span>
                         )}
                       </button>

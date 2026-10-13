@@ -27,6 +27,7 @@ export type CanvasCourse = {
   id: number;
   name?: string | null;
   course_code?: string | null;
+  html_url?: string | null;
   workflow_state?: string | null;
   access_restricted_by_date?: boolean | null;
   public_description?: string | null;
@@ -57,6 +58,7 @@ export type CanvasSubmission = {
 export type CanvasAssignment = {
   id: number;
   name?: string | null;
+  html_url?: string | null;
   due_at?: string | null;
   points_possible?: number | null;
   assignment_group_id?: number | null;

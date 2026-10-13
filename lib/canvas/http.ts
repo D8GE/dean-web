@@ -1,4 +1,4 @@
-import { parseNextUrl } from "./link";
+import { parseNextUrl, safeHttpUrl } from "./link";
 
 export type CanvasConfig = {
   baseUrl: string;
@@ -22,18 +22,18 @@ export type CanvasEnv = {
   CANVAS_TOKEN?: string;
 };
 
+/** School host only. Null when the variable is missing or not an http(s) URL. */
+export function readCanvasBaseUrl(env: CanvasEnv): string | null {
+  const raw = safeHttpUrl(env.CANVAS_BASE_URL);
+  if (!raw) return null;
+  return new URL(raw).origin;
+}
+
 export function readCanvasConfig(env: CanvasEnv): CanvasConfig | null {
-  const rawBase = env.CANVAS_BASE_URL?.trim() ?? "";
+  const baseUrl = readCanvasBaseUrl(env);
   const token = env.CANVAS_TOKEN?.trim() ?? "";
-  if (!rawBase || !token) return null;
-  let parsed: URL;
-  try {
-    parsed = new URL(rawBase);
-  } catch {
-    return null;
-  }
-  if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return null;
-  return { baseUrl: parsed.origin, token };
+  if (!baseUrl || !token) return null;
+  return { baseUrl, token };
 }
 
 function safePath(url: string): string {
@@ -81,5 +81,6 @@ export async function canvasGetAll<T>(
     items.push(...(body as T[]));
     url = parseNextUrl(response.headers.get("link"), config.baseUrl);
   }
+  if (url) console.error(`[canvas] stopped after ${PAGE_CAP} pages for ${safePath(url)}`);
   return items;
 }

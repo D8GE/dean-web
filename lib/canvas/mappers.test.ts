@@ -29,6 +29,9 @@ describe("mapCanvasBundle", () => {
       color: "mint",
       blurb: "Primary sources and short essays.",
     });
+    expect(hub.courseByCode["CS 101"]?.htmlUrl).toBe("https://school.instructure.com/courses/101");
+    expect(hub.courseByCode["HIST 210"]?.htmlUrl).toBeUndefined();
+    expect(hub.canvasUrl).toBe("https://canvas.instructure.com");
     expect(hub.student).toMatchObject({
       firstName: "Jacob",
       lastName: "Serrano",
@@ -67,7 +70,12 @@ describe("mapCanvasBundle", () => {
     const missing = hub.gradeItems.find((item) => item.id === "a-502");
     expect(missing).toMatchObject({ earned: 0, status: "missing" });
     const open = hub.gradeItems.find((item) => item.id === "a-503");
-    expect(open).toMatchObject({ earned: null, status: "unsubmitted", date: "Tomorrow · 11:59 PM" });
+    expect(open).toMatchObject({
+      earned: null,
+      status: "unsubmitted",
+      date: "Tomorrow · 11:59 PM",
+      htmlUrl: "https://school.instructure.com/courses/101/assignments/503",
+    });
     expect(hub.gradeItems.some((item) => item.title === "Secret draft")).toBe(false);
 
     const book = { gradeCategories: hub.gradeCategories, gradeItems: hub.gradeItems, courseByCode: hub.courseByCode };
@@ -87,6 +95,7 @@ describe("mapCanvasBundle", () => {
       points: 100,
       kind: "Problem set",
       dueDay: 2,
+      htmlUrl: "https://school.instructure.com/courses/101/assignments/503",
     });
     expect(hub.upcoming.find((item) => item.title === "Chapter quiz")?.kind).toBe("Quiz");
     expect(hub.upcoming.some((item) => item.title === "Exam 1" || item.title === "Ignore me" || item.title === "Reading notes")).toBe(false);

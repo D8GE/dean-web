@@ -43,7 +43,14 @@ export default function ScheduleBoard({ initialEventId = null }: { initialEventI
   const { courseByCode, courses, semester, upcoming } = hub;
   const [week, setWeek] = useState(semester.week);
   const [view, setView] = useState<"week" | "day">("week");
-  const [day, setDay] = useState(0);
+  const [day, setDay] = useState(() => {
+    if (initialEventId) {
+      const seeded = allEvents(true, hub, hub.semester.week);
+      const match = seeded.find((event) => event.id === initialEventId);
+      if (match) return match.day;
+    }
+    return semester.todayDow;
+  });
   const [course, setCourse] = useState<string>("all");
   const [showStudy, setShowStudy] = useState(true);
   const [query, setQuery] = useState("");
@@ -84,7 +91,7 @@ export default function ScheduleBoard({ initialEventId = null }: { initialEventI
   return (
     <>
       <TopBar
-        eyebrow={`${semester.today} · Week ${semester.week} of Fall`}
+        eyebrow={`${semester.today} · Week ${semester.week} of ${hub.source === "demo" ? "Fall" : semester.season}`}
         title="Your week"
         query={query}
         onQuery={setQuery}

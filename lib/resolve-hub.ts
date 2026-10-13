@@ -1,5 +1,6 @@
 import { fetchCanvasBundle } from "./canvas/bundle";
-import { CanvasRequestError, readCanvasConfig, type CanvasEnv } from "./canvas/http";
+import { CanvasRequestError, readCanvasBaseUrl, readCanvasConfig, type CanvasEnv } from "./canvas/http";
+import { DEFAULT_CANVAS_URL } from "./canvas/link";
 import { mapCanvasBundle } from "./canvas/mappers";
 import { demoSnapshot, refreshClock, type HubSnapshot } from "./hub";
 
@@ -27,8 +28,9 @@ export async function resolveHub(options: {
   now?: Date;
 }): Promise<HubSnapshot> {
   const now = options.now ?? new Date();
+  const canvasUrl = readCanvasBaseUrl(options.env) ?? DEFAULT_CANVAS_URL;
   const config = readCanvasConfig(options.env);
-  if (!config) return demoSnapshot("Add CANVAS_BASE_URL and CANVAS_TOKEN to .env.local.");
+  if (!config) return demoSnapshot("Add CANVAS_BASE_URL and CANVAS_TOKEN to .env.local.", canvasUrl);
 
   const key = `${config.baseUrl}:${tokenFingerprint(config.token)}`;
   if (!options.fetchImpl) {
@@ -38,7 +40,7 @@ export async function resolveHub(options: {
 
   try {
     const bundle = await fetchCanvasBundle(config, options.fetchImpl ?? fetch, now);
-    const hub = mapCanvasBundle(bundle, now);
+    const hub = { ...mapCanvasBundle(bundle, now), canvasUrl: config.baseUrl };
     if (!options.fetchImpl) cache.set(key, { expires: Date.now() + TTL_MS, hub });
     return refreshClock(hub, now);
   } catch (error) {
@@ -46,6 +48,6 @@ export async function resolveHub(options: {
     console.error(`[canvas] falling back to demo data: ${detail}`);
     const message =
       error instanceof CanvasRequestError ? error.message : "Couldn't reach Canvas. Showing the demo school.";
-    return demoSnapshot(message);
+    return demoSnapshot(message, canvasUrl);
   }
 }

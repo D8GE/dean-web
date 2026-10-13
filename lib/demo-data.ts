@@ -25,6 +25,8 @@ export type Course = {
   credits: number;
   blurb: string;
   office: string;
+  /** Canvas course page, when the live payload has one. */
+  htmlUrl?: string;
 };
 
 export type Student = {
@@ -178,6 +180,7 @@ export type Assignment = {
   kind: "Essay" | "Quiz" | "Problem set" | "Reading" | "Project" | "Discussion";
   points?: number | null;
   status?: SubmissionStatus;
+  htmlUrl?: string;
 };
 
 export const upcoming: Assignment[] = [
@@ -381,6 +384,7 @@ export type GradeItem = {
   feedback?: string;
   upcomingId?: string;
   status?: SubmissionStatus;
+  htmlUrl?: string;
 };
 
 export const gradeItems: GradeItem[] = [

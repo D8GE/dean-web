@@ -7,6 +7,7 @@ describe("resolveHub fallback", () => {
     expect(hub.source).toBe("demo");
     expect(hub.courses.map((course) => course.code)).toContain("BIBL 104");
     expect(hub.semester.today).toBe("Monday, October 12");
+    expect(hub.canvasUrl).toBe("https://canvas.instructure.com");
     expect(hub.sourceNote).toMatch(/CANVAS_BASE_URL/);
   });
 
@@ -21,6 +22,7 @@ describe("resolveHub fallback", () => {
     expect(hub.source).toBe("demo");
     expect(hub.courseByCode["MATH 121"]?.grade).toBe(81);
     expect(hub.sourceNote).toBe("Canvas rejected the access token.");
+    expect(hub.canvasUrl).toBe("https://school.instructure.com");
     expect(hub.sourceNote).not.toContain(token);
     expect(JSON.stringify(hub)).not.toContain(token);
   });

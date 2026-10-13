@@ -6,7 +6,7 @@ import EmptyNote from "./EmptyNote";
 import FootNote from "./FootNote";
 import TopBar from "./TopBar";
 import { useHub } from "./HubProvider";
-import { letterFor } from "@/lib/grades";
+import { letterFor, scorePercent } from "@/lib/grades";
 import { openWork, postedWork, type WorkRecord } from "@/lib/hub";
 
 type Filter = "all" | "open" | "graded";
@@ -130,7 +130,7 @@ export default function AssignmentsBoard() {
 function WorkLink({ work }: { work: WorkRecord }) {
   const { courseByCode } = useHub();
   const course = courseByCode[work.courseCode];
-  const pct = work.earned === null ? null : Math.round((work.earned / work.possible) * 100);
+  const pct = scorePercent(work.earned, work.possible);
   return (
     <li>
       <Link href={`/assignments/${work.id}`} className={`work-row tint-${course?.color ?? "neutral"}`}>
@@ -140,14 +140,14 @@ function WorkLink({ work }: { work: WorkRecord }) {
             {work.courseCode} · {work.kind} · {work.dueLabel}
           </span>
         </span>
-        {pct === null ? (
+        {work.earned === null ? (
           <span className={`due due-${work.urgency === "posted" ? "later" : work.urgency}`}>
             {work.xp ? `${work.xp} XP` : "Open"}
           </span>
         ) : (
           <span className={`score tint-${course?.color ?? "neutral"}`}>
             {work.earned}/{work.possible}
-            <small>{letterFor(pct)}</small>
+            <small>{pct === null ? "—" : letterFor(pct)}</small>
           </span>
         )}
       </Link>

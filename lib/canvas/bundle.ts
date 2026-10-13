@@ -1,3 +1,4 @@
+import { canvasPageUrl, sameOriginHttpUrl } from "./link";
 import { addDays, buildSchoolWeeks, termWeekNumber, zonedStamp } from "./time";
 import { canvasGet, canvasGetAll, type CanvasConfig } from "./http";
 import type {
@@ -117,6 +118,22 @@ export async function fetchCanvasBundle(
     assignmentsByCourse[detail.id] = detail.assignments;
     groupsByCourse[detail.id] = detail.groups;
     modulesByCourse[detail.id] = detail.modules;
+  }
+
+  for (const course of courses) {
+    course.html_url = canvasPageUrl(config.baseUrl, `/courses/${course.id}`, course.html_url);
+  }
+  for (const [id, assignments] of Object.entries(assignmentsByCourse)) {
+    for (const assignment of assignments) {
+      assignment.html_url = canvasPageUrl(
+        config.baseUrl,
+        `/courses/${id}/assignments/${assignment.id}`,
+        assignment.html_url,
+      );
+    }
+  }
+  if (planner) {
+    for (const item of planner) item.html_url = sameOriginHttpUrl(config.baseUrl, item.html_url);
   }
 
   return {

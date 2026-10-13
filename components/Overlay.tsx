@@ -15,6 +15,7 @@ export default function Overlay({
 }) {
   const titleId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
 
   useEffect(() => {
@@ -26,6 +27,20 @@ export default function Overlay({
     closeRef.current?.focus();
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") onCloseRef.current();
+      if (event.key !== "Tab") return;
+      const dialog = dialogRef.current;
+      if (!dialog) return;
+      const items = [...dialog.querySelectorAll<HTMLElement>("a[href], button:not([disabled]), input, textarea, select, [tabindex]:not([tabindex='-1'])")];
+      if (!items.length) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     };
     const overflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -40,6 +55,7 @@ export default function Overlay({
   return (
     <div className="overlay" onMouseDown={onClose}>
       <div
+        ref={dialogRef}
         className="card overlay-card"
         role="dialog"
         aria-modal="true"
