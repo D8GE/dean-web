@@ -63,6 +63,7 @@ export default function NotificationBell() {
                 key={note.id}
                 href={note.href}
                 className={`note-row tint-${note.color}`}
+                role="menuitem"
                 onClick={() => setOpen(false)}
               >
                 <span className="note-when">{note.when}</span>
@@ -71,7 +72,7 @@ export default function NotificationBell() {
               </Link>
             ))
           )}
-          <Link href="/notifications" className="suggest-all" onClick={() => setOpen(false)}>
+          <Link href="/notifications" className="suggest-all" role="menuitem" onClick={() => setOpen(false)}>
             Open notifications
           </Link>
         </div>

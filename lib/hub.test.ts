@@ -43,6 +43,7 @@ describe("live hub surfaces", () => {
     expect(byGrade?.title).toBe("Problem set 2");
     expect(byGrade?.courseCode).toBe("CS 101");
     expect(byGrade?.earned).toBe(null);
+    expect(byGrade?.htmlUrl).toBe("https://school.instructure.com/courses/101/assignments/503");
     expect(workById(live, byGrade?.id ?? "")?.gradeId).toBe("a-503");
     expect(allWork(live).some((work) => work.title === "Chapter quiz")).toBe(true);
   });

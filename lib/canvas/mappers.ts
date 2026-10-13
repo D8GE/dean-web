@@ -20,6 +20,7 @@ import {
   type SubmissionStatus,
 } from "../demo-data";
 import { letterFor } from "../grades";
+import { DEFAULT_CANVAS_URL, safeHttpUrl } from "./link";
 import { formatClock, formatRange, formatShortStart } from "../schedule";
 import type {
   CanvasAnnouncement,
@@ -334,6 +335,7 @@ function buildCourse(
     const phrase = due ? duePhrase(due, today) : null;
     const gradedAt = assignment.submission?.posted_at ? datedIn(assignment.submission.posted_at, timeZone) : null;
     const when = earned !== null ? gradedAt ?? due : due;
+    const htmlUrl = safeHttpUrl(assignment.html_url);
     items.push({
       id: `a-${assignment.id}`,
       course: code,
@@ -345,6 +347,7 @@ function buildCourse(
       order: when ? orderStamp(when.iso) : 0,
       feedback: latestComment(assignment.submission),
       status,
+      ...(htmlUrl ? { htmlUrl } : {}),
     });
   }
 
@@ -354,6 +357,7 @@ function buildCourse(
   const letter = normalizeLetter(enrollment?.computed_current_grade, reported);
   const credits = typeof raw.credits === "number" && raw.credits > 0 ? raw.credits : 3;
   const blurbSource = plainText(raw.public_description || raw.syllabus_body || "");
+  const htmlUrl = safeHttpUrl(raw.html_url);
   const course: Course = {
     code,
     slug,
@@ -365,6 +369,7 @@ function buildCourse(
     credits,
     blurb: blurbSource ? clip(blurbSource, 180) : `${code} is active this term.`,
     office: "See Canvas",
+    ...(htmlUrl ? { htmlUrl } : {}),
   };
 
   const courseModules: CourseModule[] = [...modules]
@@ -628,6 +633,7 @@ export function mapCanvasBundle(bundle: CanvasBundle, now = new Date()): HubSnap
   return {
     source: "live",
     sourceNote: "Reading Canvas",
+    canvasUrl: DEFAULT_CANVAS_URL,
     timeZone,
     student: {
       ...student,
@@ -696,6 +702,7 @@ function collectUpcoming(
       const phrase = duePhrase(when, today);
       const title = item.plannable?.title?.trim() || "To do";
       const points = item.plannable?.points_possible ?? null;
+      const htmlUrl = safeHttpUrl(item.html_url);
       push({
         id: `p-${type}-${item.plannable_id ?? title}`,
         title,
@@ -707,6 +714,7 @@ function collectUpcoming(
         kind: kindFor(title, null, type),
         points,
         status,
+        ...(htmlUrl ? { htmlUrl } : {}),
         sort: orderStamp(when.iso) * 10000 + when.minutes,
       });
     }
@@ -720,6 +728,7 @@ function collectUpcoming(
         if (!when || daysBetween(today.iso, when.iso) < -14) continue;
         const phrase = duePhrase(when, today);
         const title = assignment.name?.trim() || "Assignment";
+        const htmlUrl = safeHttpUrl(assignment.html_url);
         push({
           id: `a-${assignment.id}`,
           title,
@@ -731,6 +740,7 @@ function collectUpcoming(
           kind: kindFor(title, assignment.submission_types),
           points: assignment.points_possible ?? null,
           status,
+          ...(htmlUrl ? { htmlUrl } : {}),
           sort: orderStamp(when.iso) * 10000 + when.minutes,
         });
       }

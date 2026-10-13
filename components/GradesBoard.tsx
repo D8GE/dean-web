@@ -13,7 +13,9 @@ import {
   itemsFor,
   letterFor,
   officialGrade,
+  pointsFromPercent,
   runningPercent,
+  scorePercent,
   upcomingGradeItem,
 } from "@/lib/grades";
 import FootNote from "./FootNote";
@@ -194,9 +196,10 @@ function CourseGrade({
 }) {
   const hub = useHub();
   const openItem = upcomingGradeItem(course.code, hub);
-  const baseline = openItem ? Math.round(categoryAverage(course.code, openItem.category, hub) ?? course.grade) : 80;
+  const pace = openItem ? (categoryAverage(course.code, openItem.category, hub) ?? course.grade) : 0;
+  const baseline = openItem ? pointsFromPercent(pace, openItem.possible) : 0;
   const [score, setScore] = useState(baseline);
-  const hypoItem = openItem;
+  const hypoItem = openItem && openItem.possible > 0 ? openItem : null;
   const projected = hypoItem ? runningPercent(course.code, hub, { id: hypoItem.id, earned: score }) : officialGrade(course.code, hub);
   const currentLetter = course.letter;
   const nextLetter = letterFor(projected);
@@ -272,7 +275,7 @@ function CourseGrade({
         ) : (
           <ul className="work-list">
             {rows.map((item) => {
-              const pct = item.earned === null ? null : Math.round((item.earned / item.possible) * 100);
+              const pct = scorePercent(item.earned, item.possible);
               return (
                 <li key={item.id}>
                   <Link href={`/assignments/${item.upcomingId ?? item.id}`} className="work-row">
@@ -283,14 +286,14 @@ function CourseGrade({
                         {item.feedback ? ` · ${item.feedback}` : ""}
                       </span>
                     </span>
-                    {pct === null ? (
+                    {item.earned === null ? (
                       <span className={`due ${item.status === "missing" || item.status === "late" ? "due-today" : "due-later"}`}>
                         {statusLabel(item.status) ?? "Upcoming"}
                       </span>
                     ) : (
                       <span className={`score tint-${course.color}`}>
                         {item.earned}/{item.possible}
-                        <small>{item.status === "missing" ? "Missing" : item.status === "late" ? "Late" : letterFor(pct)}</small>
+                        <small>{pct === null ? "—" : item.status === "missing" ? "Missing" : item.status === "late" ? "Late" : letterFor(pct)}</small>
                       </span>
                     )}
                   </Link>

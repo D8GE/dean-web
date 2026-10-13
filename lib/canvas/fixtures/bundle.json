@@ -14,6 +14,7 @@
       "id": 101,
       "name": "Intro to Programming",
       "course_code": "CS 101",
+      "html_url": "https://school.instructure.com/courses/101",
       "workflow_state": "available",
       "apply_assignment_group_weights": true,
       "credits": 3,
@@ -26,6 +27,7 @@
       "id": 102,
       "name": "American History",
       "course_code": "HIST 210",
+      "html_url": "javascript:alert(1)",
       "workflow_state": "available",
       "apply_assignment_group_weights": false,
       "public_description": "<p>Primary sources and short essays.</p>",
@@ -85,6 +87,7 @@
       {
         "id": 503,
         "name": "Problem set 2",
+        "html_url": "https://school.instructure.com/courses/101/assignments/503",
         "due_at": "2026-10-15T03:59:00Z",
         "points_possible": 100,
         "assignment_group_id": 12,
@@ -227,6 +230,7 @@
       "plannable_id": 503,
       "plannable_type": "assignment",
       "plannable_date": "2026-10-15T03:59:00Z",
+      "html_url": "https://school.instructure.com/courses/101/assignments/503",
       "plannable": { "title": "Problem set 2", "due_at": "2026-10-15T03:59:00Z", "points_possible": 100 },
       "submissions": { "submitted": false, "graded": false, "late": false, "missing": false, "excused": false }
     },

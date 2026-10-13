@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { useState } from "react";
 import EmptyNote from "./EmptyNote";
+import ExternalLink from "./ExternalLink";
 import FootNote from "./FootNote";
 import Overlay from "./Overlay";
 import TopBar from "./TopBar";
 import { useHub } from "./HubProvider";
-import { letterFor } from "@/lib/grades";
+import { letterFor, scorePercent } from "@/lib/grades";
 import { announcementExtra, announcementForWork, moduleLinkForWork, workById } from "@/lib/hub";
 
 export default function AssignmentBoard({ id }: { id: string }) {
@@ -48,7 +49,7 @@ export default function AssignmentBoard({ id }: { id: string }) {
       </>
     );
   }
-  const pct = work.earned === null ? null : Math.round((work.earned / work.possible) * 100);
+  const pct = scorePercent(work.earned, work.possible);
   const open = work.earned === null;
 
   return (
@@ -89,6 +90,11 @@ export default function AssignmentBoard({ id }: { id: string }) {
           <Link href={`/grades?course=${course.slug}`} className="btn3d btn-soft compact">
             Gradebook
           </Link>
+          {work.htmlUrl && (
+            <ExternalLink href={work.htmlUrl} className="quiet-link">
+              View in Canvas
+            </ExternalLink>
+          )}
         </div>
       </section>
 
@@ -183,7 +189,7 @@ export default function AssignmentBoard({ id }: { id: string }) {
                 <span> / {work.possible}</span>
               </div>
               <p className="whatif-note">
-                {pct}% · {letterFor(pct ?? 0)}
+                {pct === null ? "No point value" : `${pct}% · ${letterFor(pct)}`}
               </p>
               {work.feedback ? (
                 <p className="work-feedback is-flush">{work.feedback}</p>

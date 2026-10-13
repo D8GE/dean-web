@@ -62,8 +62,11 @@ export default function SearchField({
         <input
           value={query}
           placeholder={placeholder}
+          role="combobox"
           aria-label={placeholder}
+          aria-expanded={show}
           aria-controls={show ? listId : undefined}
+          aria-activedescendant={show && active !== null ? `${listId}-opt-${active}` : undefined}
           aria-autocomplete="list"
           autoComplete="off"
           onChange={(event) => setQuery(event.target.value)}
@@ -99,6 +102,7 @@ export default function SearchField({
             hits.map((hit, index) => (
               <Link
                 key={`${hit.kind}-${hit.id}`}
+                id={`${listId}-opt-${index}`}
                 href={hit.href}
                 role="option"
                 aria-selected={active === index}

@@ -6,6 +6,19 @@ export type GradeData = {
   courseByCode: Record<string, Course>;
 };
 
+/** Rounded percent, or null when there is no score or the item is worth no points. */
+export function scorePercent(earned: number | null, possible: number): number | null {
+  if (earned === null || !(possible > 0)) return null;
+  return Math.round((earned / possible) * 100);
+}
+
+/** Turn a 0–100 pace into points on this assignment, clamped to what it is worth. */
+export function pointsFromPercent(percent: number, possible: number): number {
+  if (!(possible > 0)) return 0;
+  const points = Math.round((percent / 100) * possible);
+  return Math.min(possible, Math.max(0, points));
+}
+
 export function letterFor(pct: number): string {
   if (pct >= 93) return "A";
   if (pct >= 90) return "A-";

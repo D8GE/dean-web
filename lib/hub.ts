@@ -33,6 +33,7 @@ import {
   type Student,
   type StudyBlock,
 } from "./demo-data";
+import { DEFAULT_CANVAS_URL } from "./canvas/link";
 import { zonedStamp } from "./canvas/time";
 import { formatRange } from "./schedule";
 import {
@@ -50,6 +51,8 @@ export type DataSource = "live" | "demo";
 export type HubSnapshot = {
   source: DataSource;
   sourceNote: string;
+  /** School Canvas host, or the public Canvas home when no school URL is configured. */
+  canvasUrl: string;
   timeZone: string;
   student: Student;
   semester: Semester;
@@ -73,10 +76,11 @@ export type HubSnapshot = {
   focusLengths: typeof focusLengths;
 };
 
-export function demoSnapshot(sourceNote: string): HubSnapshot {
+export function demoSnapshot(sourceNote: string, canvasUrl = DEFAULT_CANVAS_URL): HubSnapshot {
   return {
     source: "demo",
     sourceNote,
+    canvasUrl,
     timeZone: "America/New_York",
     student,
     semester,
@@ -180,6 +184,7 @@ export type WorkRecord = {
   moduleItemId?: string;
   order: number;
   dueDay: number;
+  htmlUrl?: string;
 };
 
 const DAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -218,6 +223,7 @@ function recordFromGrade(item: GradeItem, up: Assignment | undefined): WorkRecor
     moduleItemId: copy?.moduleItemId,
     order: item.order,
     dueDay: up?.dueDay ?? 99,
+    htmlUrl: item.htmlUrl ?? up?.htmlUrl,
   };
 }
 
@@ -243,6 +249,7 @@ function recordFromUpcoming(up: Assignment): WorkRecord {
     moduleItemId: copy?.moduleItemId,
     order: up.dueDay,
     dueDay: up.dueDay,
+    htmlUrl: up.htmlUrl,
   };
 }
 

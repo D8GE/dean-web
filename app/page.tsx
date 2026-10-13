@@ -4,6 +4,7 @@ import Link from "next/link";
 import AvatarMenu from "@/components/AvatarMenu";
 import BadgeRack from "@/components/BadgeRack";
 import DeanAvatar from "@/components/DeanAvatar";
+import ExternalLink from "@/components/ExternalLink";
 import FootNote from "@/components/FootNote";
 import NotificationBell from "@/components/NotificationBell";
 import PlanScrollButton from "@/components/PlanScrollButton";
@@ -42,7 +43,7 @@ function Ring({ value, color }: { value: number; color: string }) {
         r={r}
         className="ring-fill"
         strokeDasharray={c}
-        strokeDashoffset={c * (1 - value / 100)}
+        strokeDashoffset={c * (1 - Math.min(100, Math.max(0, value)) / 100)}
       />
     </svg>
   );
@@ -59,7 +60,7 @@ export default function Home() {
   const hub = useHub();
   const { courseByCode, courses, deansPlan, meetings, quests, semester, student, todaysClasses, weekActivity } = hub;
   const xpPct = Math.round((student.xp / student.xpForNextLevel) * 100);
-  const maxMin = Math.max(...weekActivity.map((d) => d.minutes));
+  const maxMin = Math.max(1, ...weekActivity.map((d) => d.minutes));
   const totalFocus = weekActivity.reduce((s, d) => s + d.minutes, 0);
   const online = todaysClasses.filter((session) => /online|zoom|webex|teams/i.test(session.where)).length;
   const classSummary = todaysClasses.length
@@ -72,13 +73,10 @@ export default function Home() {
         <header className="topbar">
           <div>
             <p className="eyebrow">
-              {hub.source === "demo"
-                ? "Monday, October 12 · Week 8 of Fall"
-                : `${semester.today} · Week ${semester.week} of ${semester.season}`}
+              {semester.today} · Week {semester.week} of {hub.source === "demo" ? "Fall" : semester.season}
             </p>
             <h1>
-              {hub.source === "demo" ? "Good afternoon" : greeting(semester.todayMinutes)}, {student.firstName}{" "}
-              <span className="wave">👋</span>
+              {greeting(semester.todayMinutes)}, {student.firstName} <span className="wave">👋</span>
             </h1>
           </div>
           <div className="topbar-right">
@@ -97,7 +95,12 @@ export default function Home() {
               <DeanAvatar size={132} />
             </div>
             <div className="dean-copy">
-              <span className="tag">Dean says</span>
+              <div className="dean-tagline">
+                <span className="tag">Dean says</span>
+                <ExternalLink href={hub.canvasUrl} className="btn3d btn-ghost compact">
+                  Open Canvas
+                </ExternalLink>
+              </div>
               {hub.source === "demo" ? (
                 <p className="dean-quote">
                   Solid morning. Calc is happening right now, then you&apos;re free until 2:00. I blocked{" "}

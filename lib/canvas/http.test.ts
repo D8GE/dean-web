@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { canvasGetAll, CanvasRequestError, readCanvasConfig } from "./http";
-import { parseNextUrl } from "./link";
+import { canvasGetAll, CanvasRequestError, readCanvasBaseUrl, readCanvasConfig } from "./http";
+import { canvasPageUrl, parseNextUrl, sameOriginHttpUrl } from "./link";
 
 const config = { baseUrl: "https://school.instructure.com", token: "secret-token" };
 
@@ -77,5 +77,26 @@ describe("readCanvasConfig", () => {
       token: "abc",
     });
     expect(readCanvasConfig({ CANVAS_BASE_URL: "not a url", CANVAS_TOKEN: "abc" })).toBeNull();
+    expect(readCanvasBaseUrl({ CANVAS_BASE_URL: "https://school.instructure.com/courses/1" })).toBe("https://school.instructure.com");
+    expect(readCanvasBaseUrl({})).toBeNull();
+    expect(readCanvasBaseUrl({ CANVAS_BASE_URL: "javascript:alert(1)" })).toBeNull();
+  });
+});
+
+describe("canvas page urls", () => {
+  it("keeps a same-origin html_url and ignores anything else", () => {
+    expect(canvasPageUrl(config.baseUrl, "/courses/101", "https://school.instructure.com/courses/101")).toBe(
+      "https://school.instructure.com/courses/101",
+    );
+    expect(canvasPageUrl(config.baseUrl, "/courses/101", "https://evil.example/phish")).toBe(
+      "https://school.instructure.com/courses/101",
+    );
+    expect(canvasPageUrl(config.baseUrl, "/courses/101", "javascript:alert(1)")).toBe(
+      "https://school.instructure.com/courses/101",
+    );
+    expect(sameOriginHttpUrl(config.baseUrl, "https://evil.example/phish")).toBeNull();
+    expect(canvasPageUrl(config.baseUrl, "/courses/9/assignments/3", "/courses/9/assignments/3")).toBe(
+      "https://school.instructure.com/courses/9/assignments/3",
+    );
   });
 });
