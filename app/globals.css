@@ -161,6 +161,18 @@ ul, ol { list-style: none; margin: 0; padding: 0; }
 .nav-item.subtle .nav-icon { background: var(--neutral-s); color: var(--ink-2); }
 
 .sidebar-foot { margin-top: auto; display: flex; flex-direction: column; gap: 10px; }
+.source-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  align-self: flex-start;
+  margin: 0 8px;
+  font-size: 11px; font-weight: 800; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--muted);
+}
+.source-pill i {
+  width: 7px; height: 7px; border-radius: 99px;
+  background: var(--sun); flex-shrink: 0;
+}
+.source-pill.is-live i { background: var(--mint); }
 .streak-mini {
   display: flex; align-items: center; gap: 12px;
   padding: 14px; border-radius: 18px;
@@ -176,9 +188,15 @@ ul, ol { list-style: none; margin: 0; padding: 0; }
   .shell.is-collapsed .brand-copy,
   .shell.is-collapsed .nav-label,
   .shell.is-collapsed .streak-copy,
-  .shell.is-collapsed .nav-badge {
+  .shell.is-collapsed .nav-badge,
+  .shell.is-collapsed .source-label {
     opacity: 0;
     transition: opacity 0.12s ease;
+  }
+  .shell.is-collapsed .source-label {
+    position: absolute;
+    width: 0;
+    overflow: hidden;
   }
   /* Labels stay in the DOM for the fade, but must leave the flex line so the icon can sit in the middle of the collapsed square. */
   .shell.is-collapsed .nav-label {

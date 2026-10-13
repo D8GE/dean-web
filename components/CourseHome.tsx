@@ -6,23 +6,19 @@ import EmptyNote from "./EmptyNote";
 import GradeRing from "./GradeRing";
 import { CheckIcon, PinIcon } from "./Icons";
 import TopBar from "./TopBar";
-import {
-  announcements,
-  courseBySlug,
-  modules,
-  semester,
-  upcoming,
-  type CourseModule,
-  type ModuleItem,
-} from "@/lib/demo-data";
+import { statusLabel, type CourseModule, type ModuleItem } from "@/lib/demo-data";
 import { categoryAverage, categoriesFor, itemsFor, letterFor } from "@/lib/grades";
 import { formatRange, nextMeeting, patternLines } from "@/lib/schedule";
+import FootNote from "./FootNote";
+import { useHub } from "./HubProvider";
 
 const TABS = ["Overview", "Work", "Modules", "Announcements"] as const;
 type Tab = (typeof TABS)[number];
 
 export default function CourseHome({ slug }: { slug: string }) {
-  const course = courseBySlug[slug];
+  const hub = useHub();
+  const { announcements, modules, semester, upcoming } = hub;
+  const course = hub.courseBySlug[slug];
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState<Tab>("Overview");
   const [done, setDone] = useState<Record<string, boolean>>(() => {
@@ -34,14 +30,17 @@ export default function CourseHome({ slug }: { slug: string }) {
     return seed;
   });
   const [openModule, setOpenModule] = useState<string | null>(
-    () => modules.find((mod) => mod.course === course?.code && mod.weekLabel === "Week 8")?.id ?? null,
+    () =>
+      modules.find((mod) => mod.course === course?.code && mod.weekLabel === `Week ${semester.week}`)?.id ??
+      modules.find((mod) => mod.course === course?.code)?.id ??
+      null,
   );
   const [workFilter, setWorkFilter] = useState<"all" | "open" | "graded">("all");
   const [expanded, setExpanded] = useState<string | null>(null);
 
   const courseModules = useMemo(
     () => (course ? modules.filter((mod) => mod.course === course.code) : []),
-    [course],
+    [course, modules],
   );
 
   if (!course) {
@@ -49,7 +48,11 @@ export default function CourseHome({ slug }: { slug: string }) {
       <>
         <TopBar eyebrow="Courses" title="Course not found" query={query} onQuery={setQuery} placeholder="Search…" />
         <section className="card">
-          <EmptyNote emoji="📚" title="That course isn't on your schedule." body="These five are the ones in the demo gradebook." />
+          <EmptyNote
+            emoji="📚"
+            title="That course isn't on your schedule."
+            body={hub.source === "demo" ? "These five are the ones in the demo gradebook." : "It isn't in the active Canvas course list."}
+          />
           <Link href="/courses" className="btn3d btn-primary">
             Back to courses
           </Link>
@@ -60,7 +63,7 @@ export default function CourseHome({ slug }: { slug: string }) {
 
   const q = query.trim().toLowerCase();
   const posts = announcements.filter((item) => item.course === course.code && matches(q, item.title, item.body, item.author));
-  const work = itemsFor(course.code).filter((item) => {
+  const work = itemsFor(course.code, hub).filter((item) => {
     if (workFilter === "open" && item.earned !== null) return false;
     if (workFilter === "graded" && item.earned === null) return false;
     return matches(q, item.title, item.category, item.feedback ?? "");
@@ -77,8 +80,8 @@ export default function CourseHome({ slug }: { slug: string }) {
     (sum, mod) => sum + mod.items.filter((item) => done[item.id]).length,
     0,
   );
-  const next = nextMeeting(course.code);
-  const due = upcoming.filter((item) => item.course === course.code);
+  const next = nextMeeting(course.code, hub);
+  const due = upcoming.filter((item) => item.course === course.code && item.status !== "submitted");
 
   return (
     <>
@@ -103,7 +106,7 @@ export default function CourseHome({ slug }: { slug: string }) {
           <span className={`pill tint-${course.color}`}>{course.credits} credits</span>
           <p className="course-hero-blurb">{course.blurb}</p>
           <ul className="course-meta">
-            {patternLines(course.code).map((line) => (
+            {patternLines(course.code, hub).map((line) => (
               <li key={line}>
                 <PinIcon /> {line}
               </li>
@@ -193,8 +196,8 @@ export default function CourseHome({ slug }: { slug: string }) {
               </div>
             </header>
             <ul className="cat-list">
-              {categoriesFor(course.code).map((category) => {
-                const avg = categoryAverage(course.code, category.name);
+              {categoriesFor(course.code, hub).map((category) => {
+                const avg = categoryAverage(course.code, category.name, hub);
                 return (
                   <li key={category.name}>
                     <div className="cat-top">
@@ -266,17 +269,22 @@ export default function CourseHome({ slug }: { slug: string }) {
                         </span>
                       </span>
                       {pct === null ? (
-                        <span className="due due-soon">Not graded</span>
+                        <span className={`due ${item.status === "missing" || item.status === "late" ? "due-today" : "due-soon"}`}>
+                          {statusLabel(item.status) ?? "Not graded"}
+                        </span>
                       ) : (
                         <span className={`score tint-${course.color}`}>
                           {item.earned}/{item.possible}
-                          <small>{letterFor(pct)}</small>
+                          <small>{item.status === "missing" ? "Missing" : item.status === "late" ? "Late" : letterFor(pct)}</small>
                         </span>
                       )}
                     </button>
                     {open && (
                       <p className="work-feedback">
-                        {item.feedback ?? (item.earned === null ? "Still open. It'll land in the gradebook after you turn it in." : "Score posted. No written comment on this one.")}
+                        {item.feedback ??
+                          (item.earned === null
+                            ? "Still open. It'll land in the gradebook after you turn it in."
+                            : "Score posted. No written comment on this one.")}
                       </p>
                     )}
                   </li>
@@ -346,7 +354,7 @@ export default function CourseHome({ slug }: { slug: string }) {
         </section>
       )}
 
-      <footer className="foot muted small">Dean V0 prototype · demo data only</footer>
+      <FootNote />
     </>
   );
 }

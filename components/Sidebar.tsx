@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import DeanAvatar from "./DeanAvatar";
 import { BookIcon, CalendarIcon, ChartIcon, ChevronLeftIcon, GearIcon, HomeIcon, SparkIcon } from "./Icons";
-import { student } from "@/lib/demo-data";
+import { useHub } from "./HubProvider";
 
 const nav = [
   { label: "Home", href: "/", icon: HomeIcon, color: "violet" },
@@ -30,6 +30,7 @@ export default function Sidebar({
 }) {
   const pathname = usePathname();
   const settingsOn = isCurrent(pathname, "/settings");
+  const { source, sourceNote, student } = useHub();
 
   return (
     <aside className="sidebar">
@@ -93,6 +94,14 @@ export default function Sidebar({
         </nav>
 
         <div className="sidebar-foot">
+          <p
+            className={`source-pill ${source === "live" ? "is-live" : ""}`}
+            data-source={source}
+            title={source === "live" ? "Reading Canvas" : sourceNote}
+          >
+            <i />
+            <span className="source-label">{source === "live" ? "Live" : "Demo"}</span>
+          </p>
           <div className="streak-mini" title={collapsed ? `${student.streakDays} day streak` : undefined}>
             <span className="streak-mini-flame">🔥</span>
             <div className="streak-copy">

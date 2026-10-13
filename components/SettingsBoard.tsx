@@ -3,10 +3,13 @@
 import { useState } from "react";
 import EmptyNote from "./EmptyNote";
 import TopBar from "./TopBar";
-import { courses, focusLengths, semester, settingToggles, student } from "@/lib/demo-data";
 import { downloadIcs } from "@/lib/ics";
+import FootNote from "./FootNote";
+import { useHub } from "./HubProvider";
 
 export default function SettingsBoard() {
+  const hub = useHub();
+  const { courses, focusLengths, semester, settingToggles, student } = hub;
   const [query, setQuery] = useState("");
   const [toggles, setToggles] = useState(() => Object.fromEntries(settingToggles.map((item) => [item.id, item.on])));
   const [focus, setFocus] = useState<(typeof focusLengths)[number]>(50);
@@ -204,7 +207,11 @@ export default function SettingsBoard() {
             <header className="card-head">
               <div>
                 <h2>Connections</h2>
-                <p className="muted">Still a prototype. Nothing here reaches a real school account.</p>
+                <p className="muted">
+                  {hub.source === "live"
+                    ? "Reading your Canvas account with the token on this machine."
+                    : "Still a prototype. Nothing here reaches a real school account."}
+                </p>
               </div>
             </header>
             <div className="connect-grid">
@@ -212,15 +219,23 @@ export default function SettingsBoard() {
                 <div className="connect-mark tint-coral">C</div>
                 <div>
                   <strong>Canvas</strong>
-                  <p className="muted small">Not connected · sample courses only</p>
+                  <p className="muted small">
+                    {hub.source === "live" ? "Connected · personal access token" : "Not connected · sample courses only"}
+                  </p>
                   {canvasNote && <p className="connect-note">{canvasNote}</p>}
                 </div>
                 <button
                   type="button"
                   className="btn3d btn-primary compact"
-                  onClick={() => setCanvasNote("Canvas isn't hooked up in this demo. The classes you see are sample data.")}
+                  onClick={() =>
+                    setCanvasNote(
+                      hub.source === "live"
+                        ? "Connected. Dean is reading Canvas with the token in .env.local."
+                        : hub.sourceNote,
+                    )
+                  }
                 >
-                  Connect
+                  {hub.source === "live" ? "Connected" : "Connect"}
                 </button>
               </article>
               <article>
@@ -234,7 +249,7 @@ export default function SettingsBoard() {
                   type="button"
                   className="btn3d btn-ghost compact"
                   onClick={() => {
-                    downloadIcs(semester.week);
+                    downloadIcs(semester.week, hub);
                     setDownloaded(true);
                   }}
                 >
@@ -246,7 +261,7 @@ export default function SettingsBoard() {
         )}
       </div>
 
-      <footer className="foot muted small">Dean V0 prototype · demo data only</footer>
+      <FootNote />
     </>
   );
 }

@@ -1,0 +1,312 @@
+{
+  "profile": {
+    "id": 9,
+    "name": "Jacob Serrano",
+    "short_name": "Jacob",
+    "sortable_name": "Serrano, Jacob",
+    "primary_email": "jacob.serrano@students.edu",
+    "login_id": "jserrano",
+    "time_zone": "America/New_York",
+    "sis_user_id": "00058241"
+  },
+  "courses": [
+    {
+      "id": 101,
+      "name": "Intro to Programming",
+      "course_code": "CS 101",
+      "workflow_state": "available",
+      "apply_assignment_group_weights": true,
+      "credits": 3,
+      "public_description": "Python from variables through loops.",
+      "teachers": [{ "display_name": "Prof. Lindqvist" }],
+      "term": { "id": 1, "name": "Fall 2026", "start_at": "2026-08-24T04:00:00Z", "end_at": "2026-12-12T05:00:00Z" },
+      "enrollments": [{ "type": "student", "computed_current_score": 91.5, "computed_current_grade": "A-" }]
+    },
+    {
+      "id": 102,
+      "name": "American History",
+      "course_code": "HIST 210",
+      "workflow_state": "available",
+      "apply_assignment_group_weights": false,
+      "public_description": "<p>Primary sources and short essays.</p>",
+      "teachers": [{ "display_name": "Dr. Patel" }],
+      "term": { "id": 1, "name": "Fall 2026", "start_at": "2026-08-24T04:00:00Z" },
+      "enrollments": [{ "type": "student", "computed_current_score": 88, "computed_current_grade": "B+" }]
+    },
+    {
+      "id": 999,
+      "name": "Old Chemistry",
+      "course_code": "CHEM 1",
+      "workflow_state": "completed",
+      "teachers": [{ "display_name": "Dr. Old" }]
+    }
+  ],
+  "assignmentsByCourse": {
+    "101": [
+      {
+        "id": 501,
+        "name": "Exam 1",
+        "due_at": "2026-10-02T03:59:00Z",
+        "points_possible": 100,
+        "assignment_group_id": 11,
+        "submission_types": ["online_upload"],
+        "published": true,
+        "grading_type": "points",
+        "submission": {
+          "score": 90,
+          "submitted_at": "2026-10-01T22:00:00Z",
+          "late": false,
+          "missing": false,
+          "excused": false,
+          "workflow_state": "graded",
+          "posted_at": "2026-10-02T18:00:00Z",
+          "submission_comments": [{ "comment": "<p>Algebra was clean.</p>", "created_at": "2026-10-02T18:00:00Z" }]
+        }
+      },
+      {
+        "id": 502,
+        "name": "Problem set 1",
+        "due_at": "2026-10-09T03:59:00Z",
+        "points_possible": 100,
+        "assignment_group_id": 12,
+        "submission_types": ["online_upload"],
+        "published": true,
+        "grading_type": "points",
+        "submission": {
+          "score": null,
+          "submitted_at": null,
+          "late": false,
+          "missing": true,
+          "excused": false,
+          "workflow_state": "unsubmitted",
+          "submission_comments": []
+        }
+      },
+      {
+        "id": 503,
+        "name": "Problem set 2",
+        "due_at": "2026-10-15T03:59:00Z",
+        "points_possible": 100,
+        "assignment_group_id": 12,
+        "submission_types": ["online_upload"],
+        "published": true,
+        "grading_type": "points",
+        "submission": {
+          "score": null,
+          "submitted_at": null,
+          "late": false,
+          "missing": false,
+          "excused": false,
+          "workflow_state": "unsubmitted",
+          "submission_comments": []
+        }
+      },
+      {
+        "id": 504,
+        "name": "Lab redo",
+        "due_at": "2026-10-13T14:00:00Z",
+        "points_possible": 20,
+        "assignment_group_id": 12,
+        "submission_types": ["online_upload"],
+        "published": true,
+        "grading_type": "points",
+        "submission": {
+          "score": null,
+          "submitted_at": "2026-10-13T16:00:00Z",
+          "late": true,
+          "missing": false,
+          "excused": false,
+          "workflow_state": "submitted",
+          "submission_comments": []
+        }
+      },
+      {
+        "id": 599,
+        "name": "Secret draft",
+        "due_at": "2026-10-20T03:59:00Z",
+        "points_possible": 10,
+        "assignment_group_id": 11,
+        "published": false,
+        "grading_type": "points"
+      }
+    ],
+    "102": [
+      {
+        "id": 601,
+        "name": "Essay 1",
+        "due_at": "2026-09-30T03:59:00Z",
+        "points_possible": 40,
+        "assignment_group_id": 21,
+        "submission_types": ["online_text_entry"],
+        "published": true,
+        "grading_type": "points",
+        "submission": {
+          "score": 30,
+          "submitted_at": "2026-09-29T20:00:00Z",
+          "late": false,
+          "missing": false,
+          "excused": false,
+          "workflow_state": "graded",
+          "posted_at": "2026-10-01T15:00:00Z",
+          "submission_comments": []
+        }
+      },
+      {
+        "id": 602,
+        "name": "Midterm",
+        "due_at": "2026-10-20T03:59:00Z",
+        "points_possible": 60,
+        "assignment_group_id": 22,
+        "submission_types": ["online_quiz"],
+        "published": true,
+        "grading_type": "points",
+        "submission": {
+          "score": null,
+          "late": false,
+          "missing": false,
+          "excused": false,
+          "workflow_state": "unsubmitted"
+        }
+      }
+    ]
+  },
+  "groupsByCourse": {
+    "101": [
+      { "id": 11, "name": "Exams", "position": 1, "group_weight": 40 },
+      { "id": 12, "name": "Homework", "position": 2, "group_weight": 60 }
+    ],
+    "102": [
+      { "id": 21, "name": "Essays", "position": 1, "group_weight": 0 },
+      { "id": 22, "name": "Exams", "position": 2, "group_weight": 0 }
+    ]
+  },
+  "modulesByCourse": {
+    "101": [
+      {
+        "id": 80,
+        "name": "Week 8: Loops & lists",
+        "position": 8,
+        "items": [
+          { "id": 1, "title": "Lecture · for and while", "type": "Page", "completion_requirement": { "type": "must_view", "completed": true } },
+          { "id": 2, "title": "Lab 5 starter", "type": "Assignment", "completion_requirement": { "type": "must_submit", "completed": false } },
+          { "id": 3, "title": "Section", "type": "SubHeader" }
+        ]
+      }
+    ],
+    "102": []
+  },
+  "announcements": [
+    {
+      "id": 42,
+      "title": "Lab 5 spec is posted",
+      "message": "<p>Loops and lists, due Thursday.</p>",
+      "posted_at": "2026-10-12T15:00:00Z",
+      "context_code": "course_101",
+      "author": { "display_name": "Prof. Lindqvist" }
+    }
+  ],
+  "planner": [
+    {
+      "course_id": 101,
+      "plannable_id": 510,
+      "plannable_type": "assignment",
+      "plannable_date": "2026-10-13T03:59:00Z",
+      "plannable": { "title": "Reading notes", "due_at": "2026-10-13T03:59:00Z", "points_possible": 10 },
+      "submissions": { "submitted": true, "graded": true, "late": false, "missing": false, "excused": false }
+    },
+    {
+      "course_id": 101,
+      "plannable_id": 504,
+      "plannable_type": "assignment",
+      "plannable_date": "2026-10-13T14:00:00Z",
+      "plannable": { "title": "Lab redo", "due_at": "2026-10-13T14:00:00Z", "points_possible": 20 },
+      "submissions": { "submitted": true, "graded": false, "late": true, "missing": false, "excused": false }
+    },
+    {
+      "course_id": 101,
+      "plannable_id": 503,
+      "plannable_type": "assignment",
+      "plannable_date": "2026-10-15T03:59:00Z",
+      "plannable": { "title": "Problem set 2", "due_at": "2026-10-15T03:59:00Z", "points_possible": 100 },
+      "submissions": { "submitted": false, "graded": false, "late": false, "missing": false, "excused": false }
+    },
+    {
+      "course_id": 101,
+      "plannable_id": 501,
+      "plannable_type": "assignment",
+      "plannable_date": "2026-10-02T03:59:00Z",
+      "plannable": { "title": "Exam 1", "due_at": "2026-10-02T03:59:00Z", "points_possible": 100 },
+      "submissions": { "submitted": true, "graded": true, "late": false, "missing": false, "excused": false }
+    },
+    {
+      "course_id": 102,
+      "plannable_id": 700,
+      "plannable_type": "quiz",
+      "plannable_date": "2026-10-16T03:59:00Z",
+      "plannable": { "title": "Chapter quiz", "due_at": "2026-10-16T03:59:00Z", "points_possible": 15 },
+      "submissions": { "submitted": false, "graded": false, "late": false, "missing": false, "excused": false }
+    },
+    {
+      "course_id": 101,
+      "plannable_id": 42,
+      "plannable_type": "announcement",
+      "plannable_date": "2026-10-13T15:00:00Z",
+      "plannable": { "title": "Ignore me" },
+      "submissions": false
+    }
+  ],
+  "calendarEvents": [
+    {
+      "id": 1,
+      "title": "CS 101 Lecture",
+      "start_at": "2026-10-13T15:00:00Z",
+      "end_at": "2026-10-13T16:15:00Z",
+      "location_name": "Science Hall 204",
+      "context_code": "course_101",
+      "type": "event"
+    },
+    {
+      "id": 2,
+      "title": "CS 101 Lab",
+      "start_at": "2026-10-13T14:00:00Z",
+      "end_at": "2026-10-13T14:50:00Z",
+      "location_name": "Green Hall 1840",
+      "context_code": "course_101",
+      "type": "event"
+    },
+    {
+      "id": 3,
+      "title": "HIST 210 Seminar",
+      "start_at": "2026-10-15T15:00:00Z",
+      "end_at": "2026-10-15T16:15:00Z",
+      "location_name": "DeMoss 2014",
+      "context_code": "course_102",
+      "type": "event"
+    },
+    {
+      "id": 4,
+      "title": "Office hours",
+      "start_at": "2026-10-16T14:00:00Z",
+      "end_at": "2026-10-16T15:00:00Z",
+      "location_name": "Green Hall 1855",
+      "context_code": "course_101",
+      "type": "event"
+    },
+    {
+      "id": 5,
+      "title": "Career fair",
+      "all_day": true,
+      "all_day_date": "2026-10-17",
+      "context_code": "user_9",
+      "type": "event"
+    },
+    {
+      "id": 6,
+      "title": "Exam 1",
+      "start_at": "2026-10-13T20:00:00Z",
+      "end_at": "2026-10-13T21:00:00Z",
+      "context_code": "course_101",
+      "type": "assignment"
+    }
+  ]
+}

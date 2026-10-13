@@ -1,8 +1,18 @@
-// Demo data only. Nothing here is real or connected to Canvas yet.
-// "Today" in this prototype is Monday, October 12, 2026 — week 8 of Fall.
-// That matches the dashboard greeting. Don't drift the courses, grades, or due dates.
+// Demo data. This is also the automatic fallback when Canvas isn't configured
+// or the API can't be reached. "Today" in the demo is Monday, October 12, 2026 —
+// week 8 of Fall. That matches the dashboard greeting. Don't drift the courses,
+// grades, or due dates.
 
 export type CourseColor = "violet" | "mint" | "sun" | "coral" | "sky" | "pink";
+
+export type SubmissionStatus = "submitted" | "late" | "missing" | "unsubmitted";
+
+export function statusLabel(status?: SubmissionStatus): string | null {
+  if (status === "submitted") return "Submitted";
+  if (status === "late") return "Late";
+  if (status === "missing") return "Missing";
+  return null;
+}
 
 export type Course = {
   code: string;
@@ -17,7 +27,25 @@ export type Course = {
   office: string;
 };
 
-export const student = {
+export type Student = {
+  firstName: string;
+  lastName: string;
+  initials: string;
+  email: string;
+  studentId: string;
+  major: string;
+  year: string;
+  advisor: string;
+  level: number;
+  xp: number;
+  xpForNextLevel: number;
+  streakDays: number;
+  gpa: number;
+  weekDone: number;
+  weekTotal: number;
+};
+
+export const student: Student = {
   firstName: "Jacob",
   lastName: "Serrano",
   initials: "JS",
@@ -35,12 +63,22 @@ export const student = {
   weekTotal: 13,
 };
 
-export const semester = {
+export type Semester = {
+  season: string;
+  week: number;
+  today: string;
+  /** Minutes from midnight. The demo sits inside MATH 121, matching the dashboard's "now". */
+  todayMinutes: number;
+  /** Monday = 0 … Sunday = 6. The demo day is Monday. */
+  todayDow: number;
+};
+
+export const semester: Semester = {
   season: "Fall 2026",
   week: 8,
   today: "Monday, October 12",
-  /** Minutes from midnight. Sits inside MATH 121, matching the dashboard's "now". */
   todayMinutes: 11 * 60 + 24,
+  todayDow: 0,
 };
 
 export const courses: Course[] = [
@@ -116,6 +154,9 @@ export type ClassSession = {
   end: string;
   where: string;
   status: "done" | "now" | "next" | "later";
+  /** Set for live sessions so a short cache can refresh "now" without another Canvas call. */
+  startMin?: number;
+  endMin?: number;
 };
 
 export const todaysClasses: ClassSession[] = [
@@ -135,6 +176,8 @@ export type Assignment = {
   urgency: "today" | "soon" | "later";
   xp: number;
   kind: "Essay" | "Quiz" | "Problem set" | "Reading" | "Project" | "Discussion";
+  points?: number | null;
+  status?: SubmissionStatus;
 };
 
 export const upcoming: Assignment[] = [
@@ -199,6 +242,9 @@ export type Meeting = {
   startMin: number;
   endMin: number;
   where: string;
+  /** Set for a dated Canvas event. Omitted meetings repeat every week (demo). */
+  week?: number;
+  title?: string;
 };
 
 // Monday's four meetings are the same sessions as `todaysClasses`.
@@ -224,7 +270,9 @@ export type SchoolDay = {
   dow: number;
 };
 
-export const schoolWeeks: { week: number; range: string; days: SchoolDay[] }[] = [
+export type SchoolWeek = { week: number; range: string; days: SchoolDay[] };
+
+export const schoolWeeks: SchoolWeek[] = [
   {
     week: 6,
     range: "Sep 28 – Oct 4",
@@ -332,6 +380,7 @@ export type GradeItem = {
   order: number;
   feedback?: string;
   upcomingId?: string;
+  status?: SubmissionStatus;
 };
 
 export const gradeItems: GradeItem[] = [
@@ -529,7 +578,16 @@ export const modules: CourseModule[] = [
   },
 ];
 
-export const notifications = [
+export type Notification = {
+  id: string;
+  title: string;
+  detail: string;
+  when: string;
+  color: CourseColor;
+  href: string;
+};
+
+export const notifications: Notification[] = [
   { id: "n1", title: "Calc is happening now", detail: "MATH 121 · Science Hall 204", when: "Now", color: "sky" as CourseColor, href: "/schedule" },
   { id: "n2", title: "English draft is due tonight", detail: "ENGL 101 · 11:59 PM · 120 XP", when: "Today", color: "coral" as CourseColor, href: "/courses/engl-101" },
   { id: "n3", title: "Keep the 12-day streak", detail: "One study block after class does it.", when: "Tonight", color: "sun" as CourseColor, href: "/schedule" },

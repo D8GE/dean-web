@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { BellIcon, SearchIcon } from "./Icons";
-import { notifications, student } from "@/lib/demo-data";
+import { useHub } from "./HubProvider";
 
 export default function TopBar({
   eyebrow,
@@ -18,6 +18,7 @@ export default function TopBar({
   onQuery: (value: string) => void;
   placeholder: string;
 }) {
+  const { notifications, student } = useHub();
   const [open, setOpen] = useState(false);
   const [seen, setSeen] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);

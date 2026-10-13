@@ -1,4 +1,10 @@
-import { courseByCode, gradeCategories, gradeItems, type GradeItem } from "./demo-data";
+import type { Course, GradeCategory, GradeItem } from "./demo-data";
+
+export type GradeData = {
+  gradeCategories: GradeCategory[];
+  gradeItems: GradeItem[];
+  courseByCode: Record<string, Course>;
+};
 
 export function letterFor(pct: number): string {
   if (pct >= 93) return "A";
@@ -13,12 +19,12 @@ export function letterFor(pct: number): string {
   return "F";
 }
 
-export function categoriesFor(course: string) {
-  return gradeCategories.filter((category) => category.course === course);
+export function categoriesFor(course: string, data: GradeData) {
+  return data.gradeCategories.filter((category) => category.course === course);
 }
 
-export function itemsFor(course: string): GradeItem[] {
-  return gradeItems
+export function itemsFor(course: string, data: GradeData): GradeItem[] {
+  return data.gradeItems
     .filter((item) => item.course === course)
     .sort((a, b) => {
       const aOpen = a.earned === null ? 0 : 1;
@@ -28,17 +34,20 @@ export function itemsFor(course: string): GradeItem[] {
     });
 }
 
-export function upcomingGradeItem(course: string): GradeItem | null {
-  return itemsFor(course).find((item) => item.earned === null) ?? null;
+/** Soonest ungraded row. Demo courses have one open item, so the pick matches the old list. */
+export function upcomingGradeItem(course: string, data: GradeData): GradeItem | null {
+  const open = data.gradeItems.filter((item) => item.course === course && item.earned === null);
+  open.sort((a, b) => a.order - b.order);
+  return open[0] ?? null;
 }
 
 /** Weighted running grade. Ungraded rows are ignored unless a what-if score is supplied. */
-export function runningPercent(course: string, hypo?: { id: string; earned: number }): number {
-  const cats = categoriesFor(course);
+export function runningPercent(course: string, data: GradeData, hypo?: { id: string; earned: number }): number {
+  const cats = categoriesFor(course, data);
   let weighted = 0;
   let weightSum = 0;
   for (const category of cats) {
-    const rows = gradeItems.filter(
+    const rows = data.gradeItems.filter(
       (item) =>
         item.course === course &&
         item.category === category.name &&
@@ -58,8 +67,10 @@ export function runningPercent(course: string, hypo?: { id: string; earned: numb
   return weightSum ? (weighted / weightSum) * 100 : 0;
 }
 
-export function categoryAverage(course: string, category: string): number | null {
-  const rows = gradeItems.filter((item) => item.course === course && item.category === category && item.earned !== null);
+export function categoryAverage(course: string, category: string, data: GradeData): number | null {
+  const rows = data.gradeItems.filter(
+    (item) => item.course === course && item.category === category && item.earned !== null,
+  );
   if (!rows.length) return null;
   const earned = rows.reduce((sum, row) => sum + (row.earned ?? 0), 0);
   const possible = rows.reduce((sum, row) => sum + row.possible, 0);
@@ -71,6 +82,6 @@ export function formatPercent(value: number): string {
   return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
 }
 
-export function officialGrade(course: string): number {
-  return courseByCode[course]?.grade ?? 0;
+export function officialGrade(course: string, data: GradeData): number {
+  return data.courseByCode[course]?.grade ?? 0;
 }

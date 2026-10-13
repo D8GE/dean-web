@@ -1,16 +1,26 @@
+"use client";
+
 import DeanAvatar from "@/components/DeanAvatar";
+import FootNote from "@/components/FootNote";
 import UpcomingList from "@/components/UpcomingList";
+import { useHub } from "@/components/HubProvider";
 import { BellIcon, PinIcon, PlayIcon, SearchIcon } from "@/components/Icons";
-import {
-  badges,
-  courseByCode,
-  courses,
-  deansPlan,
-  quests,
-  student,
-  todaysClasses,
-  weekActivity,
-} from "@/lib/demo-data";
+
+function liveDeanLine(
+  classes: { course: string; status: string; start: string }[],
+  upcoming: { title: string; due: string; status?: string }[],
+): string {
+  const now = classes.find((session) => session.status === "now");
+  const next = classes.find((session) => session.status === "next");
+  const task = upcoming.find((item) => item.status !== "submitted");
+  const first = now
+    ? `${now.course} is happening right now.`
+    : next
+      ? `Next up is ${next.course} at ${next.start}.`
+      : "No more classes on today's calendar.";
+  const second = task ? `I'd start with ${task.title} (${task.due}).` : "Nothing is sitting in the planner.";
+  return `${first} ${second}`;
+}
 
 function Ring({ value, color }: { value: number; color: string }) {
   const r = 22;
@@ -30,19 +40,37 @@ function Ring({ value, color }: { value: number; color: string }) {
   );
 }
 
+function greeting(minutes: number): string {
+  const hour = Math.floor(minutes / 60);
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+}
+
 export default function Home() {
+  const hub = useHub();
+  const { badges, courseByCode, courses, deansPlan, quests, semester, student, todaysClasses, weekActivity } = hub;
   const xpPct = Math.round((student.xp / student.xpForNextLevel) * 100);
   const maxMin = Math.max(...weekActivity.map((d) => d.minutes));
   const totalFocus = weekActivity.reduce((s, d) => s + d.minutes, 0);
+  const online = todaysClasses.filter((session) => /online|zoom|webex|teams/i.test(session.where)).length;
+  const classSummary = todaysClasses.length
+    ? `${todaysClasses.length} ${todaysClasses.length === 1 ? "class" : "classes"}${online ? ` · ${online} online` : ""}`
+    : "Nothing on the calendar";
 
   return (
     <main className="main">
         {/* Top bar */}
         <header className="topbar">
           <div>
-            <p className="eyebrow">Monday, October 12 · Week 8 of Fall</p>
+            <p className="eyebrow">
+              {hub.source === "demo"
+                ? "Monday, October 12 · Week 8 of Fall"
+                : `${semester.today} · Week ${semester.week} of ${semester.season}`}
+            </p>
             <h1>
-              Good afternoon, {student.firstName} <span className="wave">👋</span>
+              {hub.source === "demo" ? "Good afternoon" : greeting(semester.todayMinutes)}, {student.firstName}{" "}
+              <span className="wave">👋</span>
             </h1>
           </div>
           <div className="topbar-right">
@@ -68,11 +96,15 @@ export default function Home() {
             </div>
             <div className="dean-copy">
               <span className="tag">Dean says</span>
-              <p className="dean-quote">
-                Solid morning. Calc is happening right now, then you&apos;re free until 2:00. I blocked{" "}
-                <strong>3:30–4:20</strong> for your English draft so it&apos;s not a midnight thing. Knock that
-                out and you&apos;re ahead for the week.
-              </p>
+              {hub.source === "demo" ? (
+                <p className="dean-quote">
+                  Solid morning. Calc is happening right now, then you&apos;re free until 2:00. I blocked{" "}
+                  <strong>3:30–4:20</strong> for your English draft so it&apos;s not a midnight thing. Knock that
+                  out and you&apos;re ahead for the week.
+                </p>
+              ) : (
+                <p className="dean-quote">{liveDeanLine(hub.todaysClasses, hub.upcoming)}</p>
+              )}
               <div className="dean-actions">
                 <button className="btn3d btn-primary">
                   <PlayIcon /> Start focus session
@@ -159,14 +191,18 @@ export default function Home() {
             <header className="card-head">
               <div>
                 <h2>Today&apos;s classes</h2>
-                <p className="muted">4 classes · 1 online</p>
+                <p className="muted">{classSummary}</p>
               </div>
             </header>
+            {todaysClasses.length === 0 ? (
+              <p className="muted">Nothing on the calendar today.</p>
+            ) : (
             <ol className="timeline">
               {todaysClasses.map((s) => {
                 const c = courseByCode[s.course];
+                const color = c?.color ?? "neutral";
                 return (
-                  <li key={s.course} className={`tl-item status-${s.status} tint-${c.color}`}>
+                  <li key={`${s.course}-${s.start}`} className={`tl-item status-${s.status} tint-${color}`}>
                     <div className="tl-time">
                       <strong>{s.start}</strong>
                       <span>{s.end}</span>
@@ -174,11 +210,11 @@ export default function Home() {
                     <div className="tl-dot" />
                     <div className="tl-card">
                       <div className="tl-title">
-                        <span className="pill">{c.code}</span>
+                        <span className="pill">{c?.code ?? s.course}</span>
                         {s.status === "now" && <span className="live">● Now</span>}
                         {s.status === "next" && <span className="next">Up next</span>}
                       </div>
-                      <div className="tl-name">{c.name}</div>
+                      <div className="tl-name">{c?.name ?? s.course}</div>
                       <div className="tl-where muted">
                         <PinIcon /> {s.where}
                       </div>
@@ -187,6 +223,7 @@ export default function Home() {
                 );
               })}
             </ol>
+            )}
           </section>
 
           {/* Upcoming */}
@@ -229,7 +266,7 @@ export default function Home() {
             <header className="card-head">
               <div>
                 <h2>Course grades</h2>
-                <p className="muted">Live from your gradebook (demo)</p>
+                <p className="muted">{hub.source === "demo" ? "Live from your gradebook (demo)" : "Live from your gradebook"}</p>
               </div>
             </header>
             <ul className="grades">
@@ -283,7 +320,7 @@ export default function Home() {
           </section>
         </div>
 
-        <footer className="foot muted small">Dean V0 prototype · demo data only</footer>
+        <FootNote />
     </main>
   );
 }
