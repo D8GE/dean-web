@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { courseByCode, upcoming } from "@/lib/demo-data";
 import { CheckIcon } from "./Icons";
@@ -48,7 +49,9 @@ export default function UpcomingList() {
                 {isDone && <CheckIcon />}
               </button>
               <div className="task-body">
-                <div className="task-title">{a.title}</div>
+                <Link href={`/assignments/${a.id}`} className="task-title">
+                  {a.title}
+                </Link>
                 <div className="task-meta">
                   <span className={`pill tint-${c.color}`}>{a.course}</span>
                   <span className="muted">{a.kind}</span>

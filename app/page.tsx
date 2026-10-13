@@ -1,16 +1,24 @@
+import Link from "next/link";
+import AvatarMenu from "@/components/AvatarMenu";
+import BadgeRack from "@/components/BadgeRack";
 import DeanAvatar from "@/components/DeanAvatar";
+import NotificationBell from "@/components/NotificationBell";
+import PlanScrollButton from "@/components/PlanScrollButton";
+import ReshuffleButton from "@/components/ReshuffleButton";
+import SearchField from "@/components/SearchField";
 import UpcomingList from "@/components/UpcomingList";
-import { BellIcon, PinIcon, PlayIcon, SearchIcon } from "@/components/Icons";
+import { PinIcon, PlayIcon } from "@/components/Icons";
 import {
-  badges,
   courseByCode,
   courses,
   deansPlan,
+  meetings,
   quests,
   student,
   todaysClasses,
   weekActivity,
 } from "@/lib/demo-data";
+import { questAnchor } from "@/lib/hub";
 
 function Ring({ value, color }: { value: number; color: string }) {
   const r = 22;
@@ -46,15 +54,9 @@ export default function Home() {
             </h1>
           </div>
           <div className="topbar-right">
-            <label className="search">
-              <SearchIcon />
-              <input placeholder="Search classes, assignments…" />
-            </label>
-            <button className="icon-btn btn3d" aria-label="Notifications">
-              <BellIcon />
-              <span className="dot" />
-            </button>
-            <div className="me">JS</div>
+            <SearchField placeholder="Search classes, assignments…" />
+            <NotificationBell />
+            <AvatarMenu />
           </div>
         </header>
 
@@ -74,10 +76,10 @@ export default function Home() {
                 out and you&apos;re ahead for the week.
               </p>
               <div className="dean-actions">
-                <button className="btn3d btn-primary">
+                <Link href="/focus" className="btn3d btn-primary">
                   <PlayIcon /> Start focus session
-                </button>
-                <button className="btn3d btn-ghost">See today&apos;s plan</button>
+                </Link>
+                <PlanScrollButton />
               </div>
             </div>
           </section>
@@ -103,32 +105,26 @@ export default function Home() {
               <span>{student.xp.toLocaleString()} XP</span>
               <span>{student.xpForNextLevel.toLocaleString()}</span>
             </div>
-            <div className="badges">
-              {badges.map((b) => (
-                <span key={b.label} className={`badge ${b.unlocked ? "" : "locked"}`} title={b.label}>
-                  {b.emoji}
-                </span>
-              ))}
-            </div>
+            <BadgeRack />
           </section>
 
           {/* Stat strip */}
           <div className="stats span-12">
-            <div className="stat tint-coral">
+            <Link href="/profile" className="stat tint-coral">
               <span className="stat-emoji">🔥</span>
               <div>
                 <div className="stat-num">{student.streakDays}</div>
                 <div className="stat-label">day streak</div>
               </div>
-            </div>
-            <div className="stat tint-violet">
+            </Link>
+            <Link href="/grades" className="stat tint-violet">
               <span className="stat-emoji">🎓</span>
               <div>
                 <div className="stat-num">{student.gpa.toFixed(2)}</div>
                 <div className="stat-label">semester GPA</div>
               </div>
-            </div>
-            <div className="stat tint-mint">
+            </Link>
+            <Link href="/assignments" className="stat tint-mint">
               <span className="stat-emoji">✅</span>
               <div>
                 <div className="stat-num">
@@ -137,8 +133,8 @@ export default function Home() {
                 </div>
                 <div className="stat-label">done this week</div>
               </div>
-            </div>
-            <div className="stat tint-sky">
+            </Link>
+            <Link href="/focus" className="stat tint-sky">
               <span className="stat-emoji">⏱️</span>
               <div>
                 <div className="stat-num">
@@ -151,7 +147,7 @@ export default function Home() {
                   <span key={i} style={{ height: `${(d.minutes / maxMin) * 100}%` }} />
                 ))}
               </div>
-            </div>
+            </Link>
           </div>
 
           {/* Today's classes */}
@@ -165,6 +161,7 @@ export default function Home() {
             <ol className="timeline">
               {todaysClasses.map((s) => {
                 const c = courseByCode[s.course];
+                const meeting = meetings.find((item) => item.course === s.course && item.day === 0);
                 return (
                   <li key={s.course} className={`tl-item status-${s.status} tint-${c.color}`}>
                     <div className="tl-time">
@@ -172,7 +169,7 @@ export default function Home() {
                       <span>{s.end}</span>
                     </div>
                     <div className="tl-dot" />
-                    <div className="tl-card">
+                    <Link href={meeting ? `/schedule?event=class-${meeting.id}` : `/courses/${c.slug}`} className="tl-card">
                       <div className="tl-title">
                         <span className="pill">{c.code}</span>
                         {s.status === "now" && <span className="live">● Now</span>}
@@ -182,7 +179,7 @@ export default function Home() {
                       <div className="tl-where muted">
                         <PinIcon /> {s.where}
                       </div>
-                    </div>
+                    </Link>
                   </li>
                 );
               })}
@@ -195,7 +192,7 @@ export default function Home() {
           </div>
 
           {/* Dean's plan */}
-          <section className="card plan-card span-5">
+          <section className="card plan-card span-5" id="tonight">
             <header className="card-head">
               <div className="plan-head">
                 <DeanAvatar size={40} />
@@ -221,7 +218,7 @@ export default function Home() {
                 );
               })}
             </ul>
-            <button className="btn3d btn-soft full">Reshuffle with Dean</button>
+            <ReshuffleButton />
           </section>
 
           {/* Grades */}
@@ -234,16 +231,18 @@ export default function Home() {
             </header>
             <ul className="grades">
               {courses.map((c) => (
-                <li key={c.code} className="grade-row">
-                  <div className="ring-wrap">
-                    <Ring value={c.grade} color={c.color} />
-                    <span className="ring-letter">{c.letter}</span>
-                  </div>
-                  <div className="grade-body">
-                    <div className="grade-code">{c.code}</div>
-                    <div className="muted small">{c.name}</div>
-                  </div>
-                  <div className="grade-pct">{c.grade}%</div>
+                <li key={c.code}>
+                  <Link href={`/grades?course=${c.slug}`} className="grade-row">
+                    <div className="ring-wrap">
+                      <Ring value={c.grade} color={c.color} />
+                      <span className="ring-letter">{c.letter}</span>
+                    </div>
+                    <div className="grade-body">
+                      <div className="grade-code">{c.code}</div>
+                      <div className="muted small">{c.name}</div>
+                    </div>
+                    <div className="grade-pct">{c.grade}%</div>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -259,27 +258,29 @@ export default function Home() {
             </header>
             <ul className="quests">
               {quests.map((q) => (
-                <li key={q.title} className={`quest tint-${q.color}`}>
-                  <div className="quest-top">
-                    <span className="quest-title">{q.title}</span>
-                    <span className="quest-xp">+{q.xp}</span>
-                  </div>
-                  <div className="quest-bar">
-                    <div style={{ width: `${(q.progress / q.goal) * 100}%` }} />
-                  </div>
-                  <div className="muted small">
-                    {q.progress} / {q.goal}
-                  </div>
+                <li key={q.title}>
+                  <Link href={`/quests#${questAnchor(q.title)}`} className={`quest tint-${q.color}`}>
+                    <div className="quest-top">
+                      <span className="quest-title">{q.title}</span>
+                      <span className="quest-xp">+{q.xp}</span>
+                    </div>
+                    <div className="quest-bar">
+                      <div style={{ width: `${(q.progress / q.goal) * 100}%` }} />
+                    </div>
+                    <div className="muted small">
+                      {q.progress} / {q.goal}
+                    </div>
+                  </Link>
                 </li>
               ))}
             </ul>
-            <div className="chest">
+            <Link href="/quests#chest" className="chest">
               <span>🎁</span>
               <div>
                 <strong>Weekly chest</strong>
                 <div className="muted small">Finish all quests 5 days</div>
               </div>
-            </div>
+            </Link>
           </section>
         </div>
 

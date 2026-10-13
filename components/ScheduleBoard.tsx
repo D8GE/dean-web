@@ -40,14 +40,19 @@ function eventHeight(event: CalEvent) {
   return ((event.endMin - event.startMin) / 60) * HOUR_PX - 2;
 }
 
-export default function ScheduleBoard() {
+export default function ScheduleBoard({ initialEventId = null }: { initialEventId?: string | null }) {
   const [week, setWeek] = useState(semester.week);
   const [view, setView] = useState<"week" | "day">("week");
   const [day, setDay] = useState(0);
   const [course, setCourse] = useState<string>("all");
   const [showStudy, setShowStudy] = useState(true);
   const [query, setQuery] = useState("");
-  const [selectedId, setSelectedId] = useState("class-m2");
+  const [selectedId, setSelectedId] = useState(initialEventId || "class-m2");
+  const [trackedEvent, setTrackedEvent] = useState(initialEventId);
+  if (trackedEvent !== initialEventId) {
+    setTrackedEvent(initialEventId);
+    if (initialEventId) setSelectedId(initialEventId);
+  }
 
   const current = weekByNumber(week);
   const events = useMemo(() => allEvents(showStudy), [showStudy]);
@@ -347,7 +352,11 @@ function DetailStrip({ event, week, dayIndex }: { event: CalEvent | null; week: 
         {due && (
           <div className="detail-due">
             <span className="muted small">Due this week</span>
-            <strong>{due.title}</strong>
+            <strong>
+              <Link href={`/assignments/${due.id}`} className="quiet-link">
+                {due.title}
+              </Link>
+            </strong>
             <span className={`due due-${due.urgency}`}>{due.due}</span>
           </div>
         )}
