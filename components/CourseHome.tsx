@@ -21,10 +21,17 @@ import { formatRange, nextMeeting, patternLines } from "@/lib/schedule";
 const TABS = ["Overview", "Work", "Modules", "Announcements"] as const;
 type Tab = (typeof TABS)[number];
 
-export default function CourseHome({ slug }: { slug: string }) {
+const TAB_FROM: Record<string, Tab> = {
+  overview: "Overview",
+  work: "Work",
+  modules: "Modules",
+  announcements: "Announcements",
+};
+
+export default function CourseHome({ slug, initialTab = null }: { slug: string; initialTab?: string | null }) {
   const course = courseBySlug[slug];
   const [query, setQuery] = useState("");
-  const [tab, setTab] = useState<Tab>("Overview");
+  const [tab, setTab] = useState<Tab>(TAB_FROM[(initialTab ?? "").toLowerCase()] ?? "Overview");
   const [done, setDone] = useState<Record<string, boolean>>(() => {
     const seed: Record<string, boolean> = {};
     for (const mod of modules) {
@@ -111,9 +118,9 @@ export default function CourseHome({ slug }: { slug: string }) {
             <li>Office hours · {course.office}</li>
           </ul>
           {next && (
-            <p className="hero-next">
+            <Link href={`/schedule?event=class-${next.meeting.id}`} className="hero-next">
               {next.live ? "Happening now" : `Next · ${next.when}`} · {formatRange(next.meeting.startMin, next.meeting.endMin)} · {next.meeting.where}
-            </p>
+            </Link>
           )}
         </div>
         <div className="course-hero-grade">
@@ -161,7 +168,9 @@ export default function CourseHome({ slug }: { slug: string }) {
                   <li key={item.id} className="task">
                     <div className={`check tint-${course.color}`} aria-hidden="true" />
                     <div className="task-body">
-                      <div className="task-title">{item.title}</div>
+                      <Link href={`/assignments/${item.id}`} className="task-title">
+                        {item.title}
+                      </Link>
                       <div className="task-meta">
                         <span className={`pill tint-${course.color}`}>{item.kind}</span>
                         <span className="muted">⚡ {item.xp} XP</span>
@@ -177,7 +186,13 @@ export default function CourseHome({ slug }: { slug: string }) {
                 <strong>
                   {doneCount}/{totalItems} module items done
                 </strong>
-                <p className="muted small">Check them off under Modules. It stays on this page.</p>
+                <p className="muted small">
+                  Check them off under{" "}
+                  <button type="button" className="quiet-link" onClick={() => setTab("Modules")}>
+                    Modules
+                  </button>
+                  . It stays on this page.
+                </p>
               </div>
               <div className={`meter tint-${course.color}`}>
                 <div style={{ width: `${totalItems ? (doneCount / totalItems) * 100 : 0}%` }} />
@@ -212,7 +227,9 @@ export default function CourseHome({ slug }: { slug: string }) {
             {posts[0] && (
               <article className="announce announce-inset">
                 <div className="announce-top">
-                  <strong>{posts[0].title}</strong>
+                  <Link href={`/announcements/${posts[0].id}`} className="quiet-link">
+                    {posts[0].title}
+                  </Link>
                   <span className="muted small">{posts[0].date}</span>
                 </div>
                 <p>{posts[0].body}</p>
@@ -253,27 +270,30 @@ export default function CourseHome({ slug }: { slug: string }) {
                 const pct = item.earned === null ? null : Math.round((item.earned / item.possible) * 100);
                 return (
                   <li key={item.id} className={open ? "is-open" : ""}>
-                    <button
-                      type="button"
-                      className="work-row"
-                      aria-expanded={item.feedback ? open : undefined}
-                      onClick={() => setExpanded(open ? null : item.id)}
-                    >
-                      <span className="work-name">
+                    <div className="work-row">
+                      <Link href={`/assignments/${item.upcomingId ?? item.id}`} className="work-name">
                         <strong>{item.title}</strong>
                         <span className="muted small">
                           {item.category} · {item.date}
                         </span>
-                      </span>
-                      {pct === null ? (
-                        <span className="due due-soon">Not graded</span>
-                      ) : (
-                        <span className={`score tint-${course.color}`}>
-                          {item.earned}/{item.possible}
-                          <small>{letterFor(pct)}</small>
-                        </span>
-                      )}
-                    </button>
+                      </Link>
+                      <button
+                        type="button"
+                        className="work-score-btn"
+                        aria-expanded={open}
+                        aria-label={`${open ? "Hide" : "Show"} notes for ${item.title}`}
+                        onClick={() => setExpanded(open ? null : item.id)}
+                      >
+                        {pct === null ? (
+                          <span className="due due-soon">Not graded</span>
+                        ) : (
+                          <span className={`score tint-${course.color}`}>
+                            {item.earned}/{item.possible}
+                            <small>{letterFor(pct)}</small>
+                          </span>
+                        )}
+                      </button>
+                    </div>
                     {open && (
                       <p className="work-feedback">
                         {item.feedback ?? (item.earned === null ? "Still open. It'll land in the gradebook after you turn it in." : "Score posted. No written comment on this one.")}
@@ -305,6 +325,7 @@ export default function CourseHome({ slug }: { slug: string }) {
                 <ModuleBlock
                   key={mod.id}
                   mod={mod}
+                  slug={course.slug}
                   color={course.color}
                   open={openModule === mod.id}
                   done={done}
@@ -324,6 +345,9 @@ export default function CourseHome({ slug }: { slug: string }) {
               <h2>Announcements</h2>
               <p className="muted">{course.professor}</p>
             </div>
+            <Link href="/announcements" className="btn3d btn-ghost compact">
+              All classes
+            </Link>
           </header>
           {posts.length === 0 ? (
             <EmptyNote emoji="📭" title="No announcements match." body="The professor has posted a couple this month — clear the search to read them." />
@@ -333,7 +357,9 @@ export default function CourseHome({ slug }: { slug: string }) {
                 <li key={post.id}>
                   <article className="announce">
                     <div className="announce-top">
-                      <strong>{post.title}</strong>
+                      <Link href={`/announcements/${post.id}`} className="quiet-link">
+                        {post.title}
+                      </Link>
                       <span className="muted small">{post.date}</span>
                     </div>
                     <p>{post.body}</p>
@@ -358,6 +384,7 @@ function matches(query: string, ...parts: string[]) {
 
 function ModuleBlock({
   mod,
+  slug,
   color,
   open,
   done,
@@ -365,6 +392,7 @@ function ModuleBlock({
   onToggleItem,
 }: {
   mod: CourseModule;
+  slug: string;
   color: string;
   open: boolean;
   done: Record<string, boolean>;
@@ -386,7 +414,7 @@ function ModuleBlock({
       {open && (
         <ul className="module-items">
           {mod.items.map((item) => (
-            <ModuleRow key={item.id} item={item} color={color} on={!!done[item.id]} onToggle={() => onToggleItem(item.id)} />
+            <ModuleRow key={item.id} item={item} slug={slug} color={color} on={!!done[item.id]} onToggle={() => onToggleItem(item.id)} />
           ))}
         </ul>
       )}
@@ -396,11 +424,13 @@ function ModuleBlock({
 
 function ModuleRow({
   item,
+  slug,
   color,
   on,
   onToggle,
 }: {
   item: ModuleItem;
+  slug: string;
   color: string;
   on: boolean;
   onToggle: () => void;
@@ -411,7 +441,9 @@ function ModuleRow({
         {on && <CheckIcon />}
       </button>
       <span className="module-kind">{item.kind}</span>
-      <span className="module-title">{item.title}</span>
+      <Link href={`/courses/${slug}/items/${item.id}`} className="module-title">
+        {item.title}
+      </Link>
     </li>
   );
 }
