@@ -630,7 +630,7 @@ ul, ol { list-style: none; margin: 0; padding: 0; }
   width: 6px; height: 6px; border-radius: 50%; background: var(--coral); display: block;
 }
 .cal-hour {
-  height: var(--hour, 52px);
+  height: var(--hour, 80px);
   font-size: 11px; font-weight: 800; color: var(--muted);
   text-align: right; padding: 2px 8px 0 0;
 }
@@ -644,7 +644,7 @@ ul, ol { list-style: none; margin: 0; padding: 0; }
   position: relative; min-width: 0;
   background-color: #fff;
   background-image: linear-gradient(to bottom, var(--line) 1px, transparent 1px);
-  background-size: 100% var(--hour, 52px);
+  background-size: 100% var(--hour, 80px);
 }
 .cal-col + .cal-col { box-shadow: inset 1px 0 0 var(--line); }
 .cal-col.is-today { background-color: color-mix(in srgb, var(--violet) 8%, #fff); }
@@ -670,11 +670,15 @@ ul, ol { list-style: none; margin: 0; padding: 0; }
 .cal-event-meta { font-size: 11px; font-weight: 700; color: var(--ink-2); line-height: 1.2; }
 .cal-event.kind-study { background: #fff; border-style: dashed; }
 .cal-event.kind-study.is-now { background: var(--c); }
-.cal-event.is-tiny {
-  padding: 0 6px; border-radius: 8px; justify-content: center; z-index: 2;
+.cal-event.is-short {
+  padding: 0 6px; border-radius: 8px; justify-content: center; gap: 0;
+  box-shadow: none;
 }
-.cal-event.is-tiny .cal-event-title { font-size: 10px; line-height: 1; white-space: nowrap; }
-.cal-event.is-tiny.is-selected { z-index: 3; }
+.cal-event.is-short .cal-event-title {
+  font-size: 11px; line-height: 13px; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.cal-event.is-short.is-selected { box-shadow: 0 3px 0 var(--c-d); z-index: 3; }
 .cal-now {
   position: absolute; left: 58px; right: 0; z-index: 4; pointer-events: none;
   border-top: 2px solid var(--coral);

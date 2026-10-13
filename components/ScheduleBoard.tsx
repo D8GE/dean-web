@@ -37,8 +37,7 @@ function eventTop(startMin: number) {
 }
 
 function eventHeight(event: CalEvent) {
-  const raw = ((event.endMin - event.startMin) / 60) * HOUR_PX - 3;
-  return raw < 20 ? 18 : raw;
+  return ((event.endMin - event.startMin) / 60) * HOUR_PX - 2;
 }
 
 export default function ScheduleBoard() {
@@ -219,22 +218,22 @@ export default function ScheduleBoard() {
                             const status = statusFor(event, week, nextId);
                             const selectedOn = event.id === selectedId;
                             const height = eventHeight(event);
-                            const tiny = height < 22;
+                            const short = height < 36;
                             const title = event.kind === "class" ? event.course : event.course || "Break";
                             return (
                               <button
                                 key={event.id}
                                 type="button"
-                                className={`cal-event tint-${tint?.color ?? "neutral"} kind-${event.kind} is-${status} ${selectedOn ? "is-selected" : ""} ${tiny ? "is-tiny" : ""}`}
+                                className={`cal-event tint-${tint?.color ?? "neutral"} kind-${event.kind} is-${status} ${selectedOn ? "is-selected" : ""} ${short ? "is-short" : ""}`}
                                 style={{ top: eventTop(event.startMin) + 2, height }}
                                 title={event.kind === "class" ? `${event.course} · ${event.label}` : event.label}
                                 onClick={() => setSelectedId(event.id)}
                               >
                                 <span className="cal-event-title">{title}</span>
-                                {!tiny && height > 34 && (
+                                {!short && (
                                   <span className="cal-event-meta">{formatRange(event.startMin, event.endMin)}</span>
                                 )}
-                                {!tiny && event.kind === "class" && height > 58 && (
+                                {!short && event.kind === "class" && height > 72 && (
                                   <span className="cal-event-meta">{event.where}</span>
                                 )}
                               </button>

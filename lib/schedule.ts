@@ -11,7 +11,7 @@ import {
 
 export const DAY_START = 8 * 60;
 export const DAY_END = 21 * 60;
-export const HOUR_PX = 52;
+export const HOUR_PX = 80;
 
 export type CalEvent = {
   id: string;
